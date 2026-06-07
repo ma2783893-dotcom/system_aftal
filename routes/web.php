@@ -20,7 +20,7 @@ Route::get('/resume/download/{id}', [ResumeController::class, 'download'])->name
 
 /*
 |--------------------------------------------------------------------------
-| 2. روابط الدخول والخروج (الحل للمشكلة السابقة)
+| 2. روابط الدخول والخروج
 |--------------------------------------------------------------------------
 */
 
@@ -29,7 +29,7 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-// عملية الدخول الفعلية 
+// عملية الدخول الفعلية
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => 'required|email',
@@ -146,6 +146,86 @@ Route::get('/delete-employee/{id}', function ($id) {
     return redirect('/')->with('success', 'تم حذف الموظف');
 })->middleware('auth');
 
-// تعديل الموظف (عرض الصفحة)
+// تعديل الموظف (عرض الصفحة - تم إكماله هنا بنجاح)
 Route::get('/edit-employee/{id}', function ($id) {
-    if (Illuminate\Support\Facades\Auth::user()->role
+    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    $emp = User::findOrFail($id);
+    return view('admin.edit', compact('emp'));
+})->middleware('auth');
+
+// تحديث بيانات الموظف (تم إكماله هنا بنجاح)
+Route::post('/update-employee/{id}', function (Request $request, $id) {
+    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    $emp = User::findOrFail($id);
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'specialization' => 'required|string|max:255',
+        'cv' => 'nullable|mimes:pdf|max:2048'
+    ]);
+
+    if ($request->hasFile('cv')) {
+        // حذف الملف القديم أولاً إن وجد
+        if ($emp->cv && file_exists(public_path('uploads/cv/' . $emp->cv))) {
+            unlink(public_path('uploads/cv/' . $emp->cv));
+        }
+        $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
+        $request->cv->move(public_path('uploads/cv'), $cvFileName);
+        $emp->cv = $cvFileName;
+    }
+
+    $emp->name = $request->name;
+    $emp->email = $request->email;
+    $emp->specialization = $request->specialization;
+    $emp->save();
+
+    return redirect('/')->with('success', 'تم تحديث البيانات بنجاح');
+})->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| 4. مفتاح تشغيل الـ Migrations وإنشاء حساب الآدمن الافتراضي تلقائياً
+|--------------------------------------------------------------------------
+*/
+Route::get('/run-migrate', function () {
+    try {
+        // 1. تشغيل التهجير وبناء الجداول في ريلواي
+        \Artisan::call('migrate', ['--force' => true]);
+        
+        // 2. إنشاء حساب الآدمن الخاص بالجامعة تلقائياً إذا كان الجدول فارغاً
+        $adminEmail = 'admin@aftal.edu.ly';
+        $adminExists = \App\Models\User::where('email', $adminEmail)->exists();
+        
+        if (!$adminExists) {
+            \App\Models\User::create([
+                'name' => 'إدارة جامعة الأفضل الدولية',
+                'email' => $adminEmail,
+                'specialization' => 'System Admin',
+                'role' => 'admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('Aftal@2026') // كلمة المرور الافتراضية
+            ]);
+            $adminMessage = '<div style="background:#e8f8f5; border:1px solid #a3e4d7; padding:15px; border-radius:5px; margin-top:15px;">
+                                <h3 style="color:#117a65; margin-top:0;">🔐 تم إنشاء حساب الآدمن الأساسي بنجاح!</h3>
+                                <p style="margin:5px 0;"><b>البريد الإلكتروني:</b> <code>' . $adminEmail . '</code></p>
+                                <p style="margin:5px 0;"><b>كلمة المرور المؤقتة:</b> <code>Aftal@2026</code></p>
+                             </div>';
+        } else {
+            $adminMessage = '<p style="color:#2980b9;">ℹ️ حساب الآدمن موجود مسبقاً في قاعدة البيانات وجاهز للاستخدام.</p>';
+        }
+
+        return '<div style="text-align:center; margin-top:50px; font-family:sans-serif; direction:rtl; max-width:500px; margin-left:auto; margin-right:auto; padding:20px; border:1px solid #d6dbdf; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                    <h1 style="color:#2ecc71;">منظومة الأفضل جاهزة للعمل! 🎉</h1>
+                    <p style="color:#7f8c8d;">تمت مزامنة قاعدة البيانات بنجاح تام.</p>
+                    ' . $adminMessage . '
+                    <br>
+                    <a href="' . url('/login') . '" style="display:inline-block; padding:12px 25px; background:#3498db; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold; margin-top:10px;">الانتقال إلى واجهة الدخول الرسمية 🚀</a>
+                </div>';
+
+    } catch (\Exception $e) {
+        return '<div style="padding:20px; font-family:monospace; background:#fadbd8; color:#78281f; border:1px solid #f5b7b1; direction:ltr; text-align:left;">
+                    <h3>حدث خطأ أثناء الـ Migrate أو إنشاء الآدمن:</h3>
+                    <p>' . nl2br(e($e->getMessage())) . '</p>
+                </div>';
+    }
+});
