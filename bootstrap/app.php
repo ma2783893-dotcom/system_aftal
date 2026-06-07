@@ -4,6 +4,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// 🔥 خط الدفاع الأول: كسر كاش ريلواي المجمّد تلقائياً عند التشغيل بقوة الكود
+if (file_exists(__DIR__.'/cache/config.php')) {
+    @unlink(__DIR__.'/cache/config.php');
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
