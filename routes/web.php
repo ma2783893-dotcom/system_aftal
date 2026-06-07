@@ -29,7 +29,7 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-// عملية الدخول الفعلية (هذا هو السطر الذي كان ينقصك)
+// عملية الدخول الفعلية 
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => 'required|email',
@@ -148,37 +148,4 @@ Route::get('/delete-employee/{id}', function ($id) {
 
 // تعديل الموظف (عرض الصفحة)
 Route::get('/edit-employee/{id}', function ($id) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
-    $emp = User::findOrFail($id);
-    return view('admin.edit', compact('emp'));
-})->middleware('auth');
-
-// تحديث بيانات الموظف
-Route::post('/update-employee/{id}', function (Request $request, $id) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
-    $emp = User::findOrFail($id);
-
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $id,
-        'specialization' => 'required|string|max:255',
-        'cv' => 'nullable|mimes:pdf|max:2048'
-    ]);
-
-    if ($request->hasFile('cv')) {
-        // حذف القديم أولاً
-        if ($emp->cv && file_exists(public_path('uploads/cv/' . $emp->cv))) {
-            unlink(public_path('uploads/cv/' . $emp->cv));
-        }
-        $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
-        $request->cv->move(public_path('uploads/cv'), $cvFileName);
-        $emp->cv = $cvFileName;
-    }
-
-    $emp->name = $request->name;
-    $emp->email = $request->email;
-    $emp->specialization = $request->specialization;
-    $emp->save();
-
-    return redirect('/')->with('success', 'تم تحديث البيانات');
-})->middleware('auth');
+    if (Illuminate\Support\Facades\Auth::user()->role
