@@ -227,5 +227,41 @@ Route::get('/run-migrate', function () {
                     <h3>حدث خطأ أثناء الـ Migrate أو إنشاء الآدمن:</h3>
                     <p>' . nl2br(e($e->getMessage())) . '</p>
                 </div>';
+                Route::get('/run-migrate', function (Request $request) {
+    try {
+        // تنظيف الكاش بالكامل لضمان قراءة التنسيقات والمتغيرات الجديدة
+        \Artisan::call('config:clear');
+        \Artisan::call('cache:clear');
+        \Artisan::call('view:clear');
+        \Artisan::call('route:clear');
+        
+        if ($request->query('fresh') === 'true') {
+            \Artisan::call('migrate:fresh', ['--force' => true]);
+        } else {
+            \Artisan::call('migrate', ['--force' => true]);
+        }
+        
+        // إنشاء حساب الآدمن الافتراضي لجامعة الأفضل
+        $adminEmail = 'admin@aftal.edu.ly';
+        if (!\App\Models\User::where('email', $adminEmail)->exists()) {
+            \App\Models\User::create([
+                'name' => 'إدارة جامعة الأفضل الدولية',
+                'email' => $adminEmail,
+                'specialization' => 'System Admin',
+                'role' => 'admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('Aftal@2026')
+            ]);
+        }
+
+        // تحويل مباشر لصفحة الدخول بعد النجاح بدلاً من العرض النصي لضمان رؤية الواجهة فوراً
+        return redirect()->route('login')->with('success', 'تم تهيئة النظام وقاعدة البيانات بنجاح!');
+
+    } catch (\Exception $e) {
+        return '<div style="padding:20px; font-family:monospace; background:#fadbd8; color:#78281f; border:1px solid #f5b7b1; direction:ltr; text-align:left;">
+                    <h3>Error during sync:</h3>
+                    <p>' . nl2br(e($e->getMessage())) . '</p>
+                </div>';
+    }
+});
     }
 });
