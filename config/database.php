@@ -29,23 +29,14 @@ return [
         ],
 
         'mysql' => [
-            'driver' => 'mysql',
-            'url' => env('DB_URL'),
-            // يقرأ من متغيرك اليدوي، وإذا لم يجده يقرأ مباشرة من سيرفر ريلواي الداخلي لضمان الربط التلقائي
-            'host' => env('DB_HOST', env('MYSQLHOST', '127.0.0.1')),
-            'port' => env('DB_PORT', env('MYSQLPORT', '3306')),
-            'database' => env('DB_DATABASE', env('MYSQLDATABASE', 'forge')),
-            'username' => env('DB_USERNAME', env('MYSQLUSER', 'forge')),
-            'password' => env('DB_PASSWORD', env('MYSQLPASSWORD', '')),
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+    'driver' => 'mysql',
+    'host' => env('DB_HOST', '127.0.0.1'),
+    'port' => env('DB_PORT', '3306'),
+    'database' => env('DB_DATABASE', 'forge'),
+    'username' => env('DB_USERNAME', 'forge'),
+    'password' => env('DB_PASSWORD', ''),
+    // ...
+],
             ]) : [],
         ],
 

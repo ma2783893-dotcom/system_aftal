@@ -1,4 +1,10 @@
 <?php
+// أضف هذا السطر في بداية الملف لفرض التعريف
+putenv("DB_CONNECTION=mysql");
+$_ENV['DB_CONNECTION'] = 'mysql';
+
+return Application::configure(basePath: dirname(__DIR__))
+// ...
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
