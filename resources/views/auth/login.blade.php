@@ -2,12 +2,29 @@
 @section('title', 'تسجيل الدخول')
 
 @section('content')
-    <!-- Watermark -->
-    <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-        <img src="{{ asset('assets/logo.png') }}" alt="" style="width:50%;max-width:440px;opacity:0.09;user-select:none;-webkit-user-select:none;">
-    </div>
+    <style>
+        .login-page {
+            position: relative;
+        }
+        .login-page::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background-image: url('{{ asset('assets/logo.png') }}');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.10;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
 
-    <div class="min-h-[80vh] flex items-center justify-center" style="position:relative;z-index:1;">
+    <div class="login-page min-h-[80vh] flex items-center justify-center" style="position:relative;z-index:1;">
         <div
             class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-10 transform transition-all hover:-translate-y-1">
             <div class="text-center mb-10">
