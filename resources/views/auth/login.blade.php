@@ -3,32 +3,29 @@
 
 @section('content')
     <style>
-        .login-page {
-            position: relative;
-        }
-        .login-page::before {
-            content: '';
+        .watermark-logo {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 400px;
-            height: 400px;
-            background-image: url('{{ asset('assets/logo.png') }}');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
+            width: 350px;
+            height: 350px;
             opacity: 0.12;
             pointer-events: none;
-            z-index: 1;
+            z-index: 0;
         }
-        .login-page > div {
-            position: relative;
-            z-index: 2;
+        .watermark-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
     </style>
 
-    <div class="login-page min-h-[80vh] flex items-center justify-center">
+    <div class="watermark-logo">
+        <img src="{{ asset('assets/logo.png') }}" alt="logo">
+    </div>
+
+    <div class="min-h-[80vh] flex items-center justify-center" style="position:relative;z-index:1;">
         <div
             class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-10 transform transition-all hover:-translate-y-1">
             <div class="text-center mb-10">
