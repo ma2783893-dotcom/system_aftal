@@ -18,13 +18,17 @@
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
-            opacity: 0.10;
+            opacity: 0.12;
             pointer-events: none;
-            z-index: 0;
+            z-index: 1;
+        }
+        .login-page > div {
+            position: relative;
+            z-index: 2;
         }
     </style>
 
-    <div class="login-page min-h-[80vh] flex items-center justify-center" style="position:relative;z-index:1;">
+    <div class="login-page min-h-[80vh] flex items-center justify-center">
         <div
             class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-10 transform transition-all hover:-translate-y-1">
             <div class="text-center mb-10">
