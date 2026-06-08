@@ -225,6 +225,14 @@
         }
         html, body {
             height: auto !important;
+            overflow: visible !important;
+            min-height: 0 !important;
+        }
+        .page-break {
+            page-break-after: avoid !important;
+        }
+        div:empty {
+            display: none !important;
         }
         /* Watermark */
         .print-watermark {
