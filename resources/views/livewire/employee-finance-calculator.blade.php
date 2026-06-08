@@ -118,6 +118,11 @@
 
     <!-- Print Layout -->
     <div id="print-section" class="hidden" dir="rtl">
+        <!-- Watermark -->
+        <div class="print-watermark" style="display:none;">
+            <img src="{{ asset('assets/logo.png') }}" alt="">
+        </div>
+
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
@@ -160,10 +165,16 @@
         </table>
 
         <!-- Signatures Section -->
-        <div class="mt-32 text-left" style="margin-top: 120px; padding-left: 10%;">
-            <div class="inline-block text-center" dir="rtl">
-                <p class="font-bold text-xl mb-2" style="font-weight: bold; font-size: 1.25rem; margin-bottom: 0.5rem;">رئيس الجامعة.</p>
-                <p class="font-bold text-xl" style="font-weight: bold; font-size: 1.25rem; margin: 0;">محاسب الجامعة.</p>
+        <div style="margin-top: 80px; padding: 0 5%; display: flex; justify-content: space-between; align-items: flex-start;" dir="ltr">
+            <div style="text-align: center; min-width: 160px;">
+                <p style="font-weight: bold; font-size: 1.1rem; margin-bottom: 50px;" dir="rtl">رئيس الجامعة</p>
+                <div style="border-top: 1px solid #333; width: 160px;"></div>
+                <p style="font-size: 0.8rem; color: #555; margin-top: 6px;" dir="rtl">التوقيع</p>
+            </div>
+            <div style="text-align: center; min-width: 160px;">
+                <p style="font-weight: bold; font-size: 1.1rem; margin-bottom: 50px;" dir="rtl">محاسب الجامعة</p>
+                <div style="border-top: 1px solid #333; width: 160px;"></div>
+                <p style="font-size: 0.8rem; color: #555; margin-top: 6px;" dir="rtl">التوقيع</p>
             </div>
         </div>
     </div>
@@ -204,6 +215,37 @@
         @page {
             size: A4;
             margin: 10mm;
+        }
+        /* Prevent blank pages */
+        tr {
+            page-break-inside: avoid;
+        }
+        #print-section > div:last-child {
+            page-break-after: avoid;
+        }
+        html, body {
+            height: auto !important;
+        }
+        /* Watermark */
+        .print-watermark {
+            display: flex !important;
+            visibility: visible !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .print-watermark img {
+            width: 55%;
+            max-width: 420px;
+            opacity: 0.12;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
     }
     </style>
