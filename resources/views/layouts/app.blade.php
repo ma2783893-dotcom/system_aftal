@@ -10,7 +10,7 @@
         body {
             font-family: 'Tajawal', sans-serif;
             background-color: #f3f4f6;
-            background-image: url('{{ asset('assets/logo.png') }}');
+            background-image: url('/assets/logo.png');
             background-repeat: no-repeat;
             background-position: center center;
             background-size: 400px;
