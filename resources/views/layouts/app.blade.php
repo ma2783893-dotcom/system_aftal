@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #ffffff;
         }
     </style>
     <script>
@@ -36,8 +36,8 @@
         transform: translate(-50%, -50%);
         z-index: 0;
         pointer-events: none;
-        width: 400px;
-        opacity: 0.08;
+        width: 450px;
+        opacity: 0.18;
     ">
         <img src="{{ asset('assets/logo.png') }}" style="width:100%;" alt="">
     </div>
