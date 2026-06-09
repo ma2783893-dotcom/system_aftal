@@ -73,7 +73,8 @@
                 </div>
                 <div class="flex gap-4 items-center">
 
-                    {{-- Dark Mode Toggle Switch --}}
+                    {{-- Dark Mode Toggle Switch (auth only) --}}
+                    @auth
                     <div onclick="toggleDark()" id="darkToggle"
                         style="width:52px; height:28px; background:rgba(255,255,255,0.2);
                                border-radius:14px; cursor:pointer; position:relative;
@@ -86,6 +87,7 @@
                                    display:flex; align-items:center; justify-content:center;
                                    font-size:0.7rem;">🌙</div>
                     </div>
+                    @endauth
 
                     {{-- Notification Bell (Admin only) --}}
                     @auth
