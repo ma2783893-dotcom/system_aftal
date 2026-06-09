@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #f3f4f6; /* Light Gray */
+            background-color: #f3f4f6;
         }
     </style>
     <script>
@@ -17,7 +17,7 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#0a2540', /* Dark Blue */
+                        primary: '#0a2540',
                         secondary: '#1e3a8a',
                     }
                 }
@@ -27,7 +27,22 @@
     @livewireStyles
 </head>
 <body class="text-gray-800 antialiased">
-    <nav class="bg-primary text-white shadow-lg shadow-gray-200">
+
+    <!-- Watermark Logo -->
+    <div style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        pointer-events: none;
+        width: 400px;
+        opacity: 0.08;
+    ">
+        <img src="{{ asset('assets/logo.png') }}" style="width:100%;" alt="">
+    </div>
+
+    <nav class="bg-primary text-white shadow-lg shadow-gray-200" style="position:relative; z-index:10;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
@@ -44,7 +59,7 @@
                     @auth
                         <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
                     @endauth
-                    
+
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
                         <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm">{{ __('Logout') }}</button>
@@ -54,9 +69,10 @@
         </div>
     </nav>
 
-    <main class="py-8">
+    <main class="py-8" style="position:relative; z-index:1;">
         @yield('content')
     </main>
+
     @livewireScripts
 </body>
 </html>
