@@ -102,21 +102,14 @@
     <!-- Print Layout -->
     <div id="print-section" class="hidden" dir="rtl">
 
-        <!-- Print Header -->
-        <div style="text-align:center; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:3px solid #0a2540;">
-            <img src="/assets/logo-dark.jpg"
-                 style="width:100px; height:100px; object-fit:contain;
-                        border-radius:50%; margin:0 auto 0.75rem auto;
-                        display:block; border:3px solid #0a2540;">
-            <h1 style="font-size:1.6rem; font-weight:900; color:#0a2540; margin:0 0 0.25rem 0;">
-                جامعة الأفضل الدولية
-            </h1>
-            <p style="font-size:0.9rem; color:#64748b; margin:0 0 0.25rem 0;">
-                Al-Afdal International University
-            </p>
-            <h2 style="font-size:1.1rem; font-weight:700; color:#1e3a8a; margin:0.5rem 0 0 0;">
-                {{ __('Financial Report') }}
-            </h2>
+        <!-- Header -->
+        <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
+            <div style="text-align:center; margin-bottom:1rem;">
+                <img src="/assets/logo-transparent.png"
+                     style="width:160px; height:160px; object-fit:contain; margin:0 auto; display:block;">
+            </div>
+            <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
+            <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
         </div>
 
         <!-- Table -->
@@ -170,41 +163,37 @@
 
     <style>
     @media print {
-        /* Hide everything except print section */
-        body > * { display: none !important; }
-        #print-section { display: block !important; }
-
+        body * { visibility: hidden; }
+        #print-section, #print-section * { visibility: visible; }
         #print-section {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 15mm;
             display: block !important;
-            visibility: visible !important;
-            position: static !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 20px !important;
+            color: black;
+            font-family: Arial, sans-serif;
             background: white !important;
-            color: black !important;
+            box-sizing: border-box;
         }
-
-        #print-section * {
-            visibility: visible !important;
-            color: black !important;
-        }
-
         .no-print { display: none !important; }
-
-        table { width: 100% !important; border-collapse: collapse !important; }
-        th, td { border: 1px solid #333 !important; padding: 8px !important; }
-
+        th, td { color: black !important; }
+        th.bg-gray-100 {
+            background-color: #f3f4f6 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        tr { page-break-inside: avoid; }
         html, body {
             height: auto !important;
             overflow: visible !important;
-            background: white !important;
+            min-height: 0 !important;
         }
-    }
-
-    @page {
-        size: A4;
-        margin: 15mm 10mm;
     }
     </style>
 </div>
