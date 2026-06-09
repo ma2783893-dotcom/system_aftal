@@ -104,17 +104,24 @@
 
         <!-- Watermark -->
         <div class="print-watermark">
-            <img src="/assets/logo-transparent.png" alt="">
+            <img src="/assets/logo-dark.jpg" alt="">
         </div>
 
-        <!-- Header -->
-        <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
-            <div style="text-align:center; margin-bottom:1rem;">
-                <img src="/assets/logo-transparent.png"
-                     style="width:160px; height:160px; object-fit:contain; margin:0 auto; display:block;">
-            </div>
-            <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
-            <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
+        <!-- Print Header -->
+        <div style="text-align:center; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:3px solid #0a2540;">
+            <img src="/assets/logo-dark.jpg"
+                 style="width:100px; height:100px; object-fit:contain;
+                        border-radius:50%; margin:0 auto 0.75rem auto;
+                        display:block; border:3px solid #0a2540;">
+            <h1 style="font-size:1.6rem; font-weight:900; color:#0a2540; margin:0 0 0.25rem 0;">
+                جامعة الأفضل الدولية
+            </h1>
+            <p style="font-size:0.9rem; color:#64748b; margin:0 0 0.25rem 0;">
+                Al-Afdal International University
+            </p>
+            <h2 style="font-size:1.1rem; font-weight:700; color:#1e3a8a; margin:0.5rem 0 0 0;">
+                {{ __('Financial Report') }}
+            </h2>
         </div>
 
         <!-- Table -->
@@ -174,13 +181,14 @@
             position: absolute;
             left: 0; top: 0;
             width: 100%;
-            margin: 0;
-            padding: 15mm;
+            padding: 20px;
             display: block !important;
-            color: black;
-            font-family: Arial, sans-serif;
             background: white !important;
-            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        @page {
+            size: A4;
+            margin: 15mm;
         }
         .no-print { display: none !important; }
         th, td { color: black !important; }
@@ -189,33 +197,26 @@
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
-        @page {
-            size: A4;
-            margin: 0;
-        }
         tr { page-break-inside: avoid; }
-        html, body {
-            height: auto !important;
-            overflow: visible !important;
-            min-height: 0 !important;
-        }
-        /* Watermark يملأ الورقة كلها */
+        html, body { height: auto !important; overflow: visible !important; }
+        /* Watermark — subtle and professional */
         .print-watermark {
             display: block !important;
             visibility: visible !important;
             position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 350px !important;
+            height: 350px !important;
             pointer-events: none !important;
             z-index: 0 !important;
+            opacity: 0.06 !important;
         }
         .print-watermark img {
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: 100% !important;
             object-fit: contain !important;
-            opacity: 0.08 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
