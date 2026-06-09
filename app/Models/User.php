@@ -26,6 +26,7 @@ class User extends Authenticatable
         'daily_hours',
         'total_hours',
         'cv',
+        'profile_photo',
         'role',
     ];
 

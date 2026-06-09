@@ -4,12 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>جامعة الأفضل الدولية - @yield('title')</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a2540">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
             background-color: #f3f4f6;
+            background-image: url('/assets/logo.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 400px;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-color: #f3f4f6;
+            opacity: 0.82;
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* Dark Mode */
+        .dark-mode {
+            background-color: #0f172a !important;
+            color: #e2e8f0 !important;
+        }
+        .dark-mode::before {
+            background-color: #0f172a !important;
+        }
+        .dark-mode .bg-white {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        .dark-mode table {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        .dark-mode th {
+            background-color: #0f172a !important;
+            color: #94a3b8 !important;
+        }
+        .dark-mode td {
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+        .dark-mode .text-gray-800 { color: #e2e8f0 !important; }
+        .dark-mode .text-gray-700 { color: #cbd5e1 !important; }
+        .dark-mode .text-gray-500 { color: #94a3b8 !important; }
+        .dark-mode input, .dark-mode select {
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+            border-color: #475569 !important;
         }
     </style>
     <script>
@@ -42,6 +90,52 @@
                     </div>
                 </div>
                 <div class="flex gap-4 items-center">
+
+                    {{-- Dark Mode Toggle --}}
+                    <button onclick="toggleDark()" id="darkBtn"
+                        style="background:rgba(255,255,255,0.1); border:none; color:white;
+                               padding:6px 12px; border-radius:8px; cursor:pointer; font-size:1rem;">
+                        🌙
+                    </button>
+
+                    {{-- Notification Bell (Admin only) --}}
+                    @auth
+                    @if(auth()->user()->isAdmin())
+                    <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
+                        <span style="font-size:1.4rem; line-height:1;">🔔</span>
+                        @if(isset($unreadCount) && $unreadCount > 0)
+                        <span style="position:absolute; top:-6px; right:-6px; background:red; color:white;
+                                     border-radius:50%; width:18px; height:18px; font-size:0.65rem;
+                                     display:flex; align-items:center; justify-content:center; font-weight:bold;">
+                            {{ $unreadCount }}
+                        </span>
+                        @endif
+                    </div>
+
+                    <div id="notifDropdown" style="display:none; position:absolute; top:64px;
+                         right:20px; background:white; color:#333; border-radius:12px;
+                         width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:999; padding:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <h4 style="color:#0a2540; font-weight:bold; margin:0;">🔔 الإشعارات</h4>
+                            <a href="/notifications/mark-read" style="font-size:0.75rem; color:#3b82f6; text-decoration:none;">
+                                تعيين الكل كمقروء
+                            </a>
+                        </div>
+                        @if(isset($notifications) && $notifications->count())
+                            @foreach($notifications as $notif)
+                            <div style="padding:0.6rem; border-bottom:1px solid #f1f5f9; font-size:0.875rem;
+                                        background:{{ $notif->is_read ? 'transparent' : '#eff6ff' }}; border-radius:4px;">
+                                {{ $notif->message }}
+                                <div style="color:#94a3b8; font-size:0.72rem; margin-top:3px;">{{ $notif->created_at->diffForHumans() }}</div>
+                            </div>
+                            @endforeach
+                        @else
+                            <p style="color:#94a3b8; font-size:0.875rem; text-align:center; padding:1rem 0;">لا توجد إشعارات</p>
+                        @endif
+                    </div>
+                    @endif
+                    @endauth
+
                     <div class="flex items-center rounded-md shrink-0 border-r border-white/20 pr-4 mr-4" dir="ltr">
                         <a href="{{ route('lang.switch', 'ar') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'ar' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-l-md transition">Ar</a>
                         <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'en' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-r-md transition">En</a>
@@ -73,58 +167,66 @@
         z-index: 1;
     ">
         <div style="max-width:1200px; margin:0 auto;">
-
-            <!-- Top Row -->
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:1.5rem; margin-bottom:1.5rem;">
-
-                <!-- Logo & Name -->
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="/assets/logo-dark.jpg"
-                         style="width:50px; height:50px; border-radius:50%; object-fit:contain;">
+                    <img src="/assets/logo-dark.jpg" style="width:50px; height:50px; border-radius:50%; object-fit:contain;">
                     <div>
                         <div style="font-weight:bold; font-size:1.1rem;">جامعة الأفضل الدولية</div>
                         <div style="font-size:0.75rem; color:#94a3b8;">Al Afdal International University</div>
                     </div>
                 </div>
-
-                <!-- Quick Links -->
                 <div style="display:flex; gap:1.5rem; font-size:0.9rem; color:#94a3b8;">
                     <span>📧 ma2783893@gmail.com</span>
                     <span>📞 +218 919004828</span>
                     <span>📍 ليبيا</span>
                 </div>
-
-                <!-- System Info -->
                 <div style="text-align:center; font-size:0.8rem; color:#64748b;">
                     <div>نظام إدارة أعضاء هيئة التدريس</div>
                     <div style="color:#3b82f6;">الإصدار 1.0.0</div>
                 </div>
             </div>
-
-            <!-- Bottom Row -->
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-
-                <!-- Copyright -->
                 <div style="font-size:0.85rem; color:#94a3b8;">
                     © 2026 جامعة الأفضل الدولية — جميع الحقوق محفوظة
                 </div>
-
-                <!-- Badges -->
                 <div style="display:flex; gap:0.75rem;">
-                    <span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
-                        🔒 نظام آمن
-                    </span>
-                    <span style="background:rgba(16,185,129,0.15); color:#34d399; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
-                        ✓ مرخّص رسمياً
-                    </span>
-                    <span style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
-                        ⚡ Laravel 12
-                    </span>
+                    <span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:4px 10px; border-radius:20px; font-size:0.75rem;">🔒 نظام آمن</span>
+                    <span style="background:rgba(16,185,129,0.15); color:#34d399; padding:4px 10px; border-radius:20px; font-size:0.75rem;">✓ مرخّص رسمياً</span>
+                    <span style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:4px 10px; border-radius:20px; font-size:0.75rem;">⚡ Laravel 12</span>
                 </div>
             </div>
         </div>
     </footer>
 
     @livewireScripts
+
+    <script>
+    // Dark Mode
+    function toggleDark() {
+        document.body.classList.toggle('dark-mode');
+        const btn = document.getElementById('darkBtn');
+        const isDark = document.body.classList.contains('dark-mode');
+        btn.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('darkMode', isDark);
+    }
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('darkBtn');
+        if (btn) btn.textContent = '☀️';
+    }
+
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notifDropdown');
+        if (dropdown && !e.target.closest('[onclick="toggleNotifications()"]') && !e.target.closest('#notifDropdown')) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    function toggleNotifications() {
+        const d = document.getElementById('notifDropdown');
+        if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+    }
+    </script>
 </body>
 </html>

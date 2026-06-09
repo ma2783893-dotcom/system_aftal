@@ -1,0 +1,21 @@
+{
+    "name": "جامعة الأفضل الدولية",
+    "short_name": "الأفضل",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a2540",
+    "theme_color": "#0a2540",
+    "description": "نظام إدارة أعضاء هيئة التدريس والموظفين",
+    "icons": [
+        {
+            "src": "/assets/logo-dark.jpg",
+            "sizes": "192x192",
+            "type": "image/jpeg"
+        },
+        {
+            "src": "/assets/logo-dark.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}

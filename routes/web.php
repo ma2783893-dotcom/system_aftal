@@ -3,11 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Finance;
+use App\Models\Attendance;
+use App\Models\AppNotification;
+use App\Models\ActivityLog;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ResumeController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,12 +68,21 @@ Route::post('/logout', function (Request $request) {
 
 // الصفحة الرئيسية - عرض الموظفين
 Route::get('/', function () {
-    if (\Illuminate\Support\Facades\Auth::user()->role === 'employee') {
-        return redirect('/profile/' . \Illuminate\Support\Facades\Auth::id());
+    if (Auth::user()->role === 'employee') {
+        return redirect('/profile/' . Auth::id());
     }
-    
-    $employees = User::where('role', 'employee')->get();
-    return view('admin.dashboard', compact('employees'));
+
+    $employees       = User::where('role', 'employee')->get();
+    $totalEmployees  = $employees->count();
+    $totalHours      = Attendance::sum('hours_worked') ?? 0;
+    $totalSalaries   = Finance::sum('salary') ?? 0;
+    $totalDepartments = User::where('role', 'employee')->distinct('specialization')->count('specialization');
+    $specializations  = User::where('role', 'employee')->whereNotNull('specialization')->distinct()->pluck('specialization');
+
+    return view('admin.dashboard', compact(
+        'employees', 'totalEmployees', 'totalHours',
+        'totalSalaries', 'totalDepartments', 'specializations'
+    ));
 })->middleware('auth');
 
 // ملف الموظف الشخصي
@@ -106,29 +121,58 @@ Route::get('/create-employee', function () {
 
 // معالجة إضافة الموظف (مع التشفير ورفع الملف)
 Route::post('/add-employee', function (Request $request) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    if (Auth::user()->role !== 'admin') abort(403);
     $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'specialization' => 'required|string|max:255',
-        'password' => 'required|string|min:6',
-        'cv' => 'nullable|mimes:pdf|max:2048'
+        'name'          => 'required|string|max:255',
+        'email'         => 'required|email|unique:users,email',
+        'specialization'=> 'required|string|max:255',
+        'password'      => 'required|string|min:6',
+        'cv'            => 'nullable|mimes:pdf|max:2048',
+        'profile_photo' => 'nullable|image|max:2048',
     ]);
 
-    $cvFileName = null;
+    $cvFileName    = null;
+    $photoFileName = null;
+
     if ($request->hasFile('cv')) {
         $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
         $request->cv->move(public_path('uploads/cv'), $cvFileName);
     }
 
-    User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'specialization' => $request->specialization,
-        'role' => 'employee',
-        'cv' => $cvFileName,
-        'password' => Hash::make($request->password) // تشفير كلمة السر
+    if ($request->hasFile('profile_photo')) {
+        $photoFileName = time() . '_' . $request->profile_photo->getClientOriginalName();
+        $request->profile_photo->move(public_path('uploads/photos'), $photoFileName);
+    }
+
+    $employee = User::create([
+        'name'          => $request->name,
+        'email'         => $request->email,
+        'specialization'=> $request->specialization,
+        'role'          => 'employee',
+        'cv'            => $cvFileName,
+        'profile_photo' => $photoFileName,
+        'password'      => Hash::make($request->password),
     ]);
+
+    // Notification
+    try {
+        AppNotification::create([
+            'message' => 'تم إضافة موظف جديد: ' . $employee->name,
+            'type'    => 'new_employee',
+            'is_read' => false,
+        ]);
+    } catch (\Exception $e) {}
+
+    // Activity Log
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'added_employee',
+            'target'     => $employee->name,
+            'details'    => 'Added new employee with email: ' . $employee->email,
+            'ip_address' => $request->ip(),
+        ]);
+    } catch (\Exception $e) {}
 
     return redirect('/')->with('success', 'تم إضافة الموظف بنجاح');
 })->middleware('auth');
@@ -153,20 +197,20 @@ Route::get('/edit-employee/{id}', function ($id) {
     return view('admin.edit', compact('emp'));
 })->middleware('auth');
 
-// تحديث بيانات الموظف (تم إكماله هنا بنجاح)
+// تحديث بيانات الموظف
 Route::post('/update-employee/{id}', function (Request $request, $id) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    if (Auth::user()->role !== 'admin') abort(403);
     $emp = User::findOrFail($id);
 
     $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $id,
-        'specialization' => 'required|string|max:255',
-        'cv' => 'nullable|mimes:pdf|max:2048'
+        'name'          => 'required|string|max:255',
+        'email'         => 'required|email|unique:users,email,' . $id,
+        'specialization'=> 'required|string|max:255',
+        'cv'            => 'nullable|mimes:pdf|max:2048',
+        'profile_photo' => 'nullable|image|max:2048',
     ]);
 
     if ($request->hasFile('cv')) {
-        // حذف الملف القديم أولاً إن وجد
         if ($emp->cv && file_exists(public_path('uploads/cv/' . $emp->cv))) {
             unlink(public_path('uploads/cv/' . $emp->cv));
         }
@@ -175,10 +219,29 @@ Route::post('/update-employee/{id}', function (Request $request, $id) {
         $emp->cv = $cvFileName;
     }
 
-    $emp->name = $request->name;
-    $emp->email = $request->email;
+    if ($request->hasFile('profile_photo')) {
+        if ($emp->profile_photo && file_exists(public_path('uploads/photos/' . $emp->profile_photo))) {
+            unlink(public_path('uploads/photos/' . $emp->profile_photo));
+        }
+        $photoFileName = time() . '_' . $request->profile_photo->getClientOriginalName();
+        $request->profile_photo->move(public_path('uploads/photos'), $photoFileName);
+        $emp->profile_photo = $photoFileName;
+    }
+
+    $emp->name           = $request->name;
+    $emp->email          = $request->email;
     $emp->specialization = $request->specialization;
     $emp->save();
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'updated_employee',
+            'target'     => $emp->name,
+            'details'    => 'Updated employee data',
+            'ip_address' => $request->ip(),
+        ]);
+    } catch (\Exception $e) {}
 
     return redirect('/')->with('success', 'تم تحديث البيانات بنجاح');
 })->middleware('auth');
@@ -265,3 +328,66 @@ Route::get('/run-migrate', function () {
 });
     }
 });
+
+/*
+|--------------------------------------------------------------------------
+| 5. الميزات الجديدة: التقارير، التقويم، الإشعارات، سجل النشاط
+|--------------------------------------------------------------------------
+*/
+
+// PDF Monthly Report
+Route::get('/reports/monthly', [ReportController::class, 'monthly'])->middleware('auth');
+
+// Attendance Calendar
+Route::get('/attendance/calendar', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+
+    $employees     = User::where('role', 'employee')->get();
+    $selectedMonth = $request->get('month', now()->format('Y-m'));
+    $employeeId    = $request->get('employee_id');
+
+    $startOfMonth = Carbon::parse($selectedMonth)->startOfMonth();
+    $endOfMonth   = Carbon::parse($selectedMonth)->endOfMonth();
+    $startOffset  = $startOfMonth->dayOfWeek; // 0=Sun
+
+    $attendanceQuery = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth]);
+    if ($employeeId) {
+        $attendanceQuery->where('employee_id', $employeeId);
+    }
+    $attendanceRecords = $attendanceQuery->get()->keyBy(fn($a) => Carbon::parse($a->date)->format('Y-m-d'));
+
+    $days = [];
+    for ($d = 1; $d <= $endOfMonth->day; $d++) {
+        $dateStr = $startOfMonth->copy()->day($d)->format('Y-m-d');
+        $record  = $attendanceRecords[$dateStr] ?? null;
+        $days[]  = [
+            'date'    => $d,
+            'present' => $record !== null,
+            'absent'  => false,
+            'hours'   => $record ? $record->hours_worked : 0,
+        ];
+    }
+
+    return view('attendance.calendar', compact('employees', 'days', 'selectedMonth', 'startOffset'));
+})->middleware('auth');
+
+// Mark all notifications as read
+Route::get('/notifications/mark-read', function () {
+    if (Auth::user()->isAdmin()) {
+        try {
+            AppNotification::where('is_read', false)->update(['is_read' => true]);
+        } catch (\Exception $e) {}
+    }
+    return redirect()->back();
+})->middleware('auth');
+
+// Activity Log page
+Route::get('/activity-log', function () {
+    if (Auth::user()->role !== 'admin') abort(403);
+    try {
+        $logs = ActivityLog::with('user')->latest()->paginate(30);
+    } catch (\Exception $e) {
+        $logs = collect();
+    }
+    return view('admin.activity-log', compact('logs'));
+})->middleware('auth');

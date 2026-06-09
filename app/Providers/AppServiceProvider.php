@@ -3,22 +3,24 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
+use App\Models\AppNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        View::composer('layouts.app', function ($view) {
+            if (auth()->check() && auth()->user()->isAdmin()) {
+                $notifications = AppNotification::latest()->take(10)->get();
+                $unreadCount   = AppNotification::where('is_read', false)->count();
+            } else {
+                $notifications = collect();
+                $unreadCount   = 0;
+            }
+            $view->with(compact('notifications', 'unreadCount'));
+        });
     }
 }
