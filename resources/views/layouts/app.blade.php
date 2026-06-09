@@ -9,7 +9,21 @@
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #ffffff;
+            background-color: #f3f4f6;
+            background-image: url('{{ asset('assets/logo.png') }}');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 400px;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-color: #f3f4f6;
+            opacity: 0.82;
+            z-index: 0;
+            pointer-events: none;
         }
     </style>
     <script>
@@ -27,20 +41,6 @@
     @livewireStyles
 </head>
 <body class="text-gray-800 antialiased">
-
-    <!-- Watermark Logo -->
-    <div style="
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 0;
-        pointer-events: none;
-        width: 450px;
-        opacity: 0.18;
-    ">
-        <img src="{{ asset('assets/logo.png') }}" style="width:100%;" alt="">
-    </div>
 
     <nav class="bg-primary text-white shadow-lg shadow-gray-200" style="position:relative; z-index:10;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
