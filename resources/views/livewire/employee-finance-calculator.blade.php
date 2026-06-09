@@ -104,13 +104,15 @@
 
         <!-- Watermark -->
         <div class="print-watermark">
-            <img src="{{ asset('assets/logo.png') }}" alt="">
+            <img src="{{ asset('assets/logo-transparent.png') }}" alt="">
         </div>
 
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
-            <img src="{{ asset('assets/logo-dark.jpg') }}" alt="logo"
-                 style="width:100px; height:100px; object-fit:contain; margin:0 auto 1rem auto; display:block;">
+            <div style="text-align:center; margin-bottom:1rem;">
+                <img src="{{ asset('assets/logo-transparent.png') }}" alt="logo"
+                     style="width:160px; height:160px; object-fit:contain; margin:0 auto; display:block;">
+            </div>
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
             <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
         </div>
@@ -173,11 +175,12 @@
             left: 0; top: 0;
             width: 100%;
             margin: 0;
-            padding: 20px;
+            padding: 15mm;
             display: block !important;
             color: black;
             font-family: Arial, sans-serif;
             background: white !important;
+            box-sizing: border-box;
         }
         .no-print { display: none !important; }
         th, td { color: black !important; }
@@ -186,7 +189,10 @@
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
-        @page { size: A4; margin: 10mm; }
+        @page {
+            size: A4;
+            margin: 0;
+        }
         tr { page-break-inside: avoid; }
         html, body {
             height: auto !important;
