@@ -9,6 +9,11 @@
     <div class="login-card" style="position:relative; z-index:2; background:rgba(255,255,255,0.45); backdrop-filter:blur(1px); border-radius:1rem; padding:2.5rem; width:100%; max-width:28rem; box-shadow:0 10px 25px rgba(0,0,0,0.1); border:1px solid #e5e7eb;">
 
         <div style="text-align:center; margin-bottom:2rem;">
+            <div style="text-align:center; margin-bottom:1rem;">
+                <img src="/assets/logo-dark.jpg"
+                     style="width:110px; height:110px; object-fit:contain;
+                            border-radius:50%; margin:0 auto; display:block;">
+            </div>
             <h1 style="font-size:1.6rem; font-weight:900; color:#0a2540; margin-bottom:0.5rem;">جامعة الأفضل الدولية</h1>
             <p style="font-size:0.85rem; color:#6b7280;">نظام إدارة أعضاء هيئة التدريس والموظفين</p>
         </div>
