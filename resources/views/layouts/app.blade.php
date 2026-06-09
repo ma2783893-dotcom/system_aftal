@@ -10,20 +10,6 @@
         body {
             font-family: 'Tajawal', sans-serif;
             background-color: #f3f4f6;
-            background-image: url('/assets/logo.png');
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: 400px;
-            background-attachment: fixed;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-color: #f3f4f6;
-            opacity: 0.82;
-            z-index: 0;
-            pointer-events: none;
         }
     </style>
     <script>
@@ -42,6 +28,11 @@
 </head>
 <body class="text-gray-800 antialiased">
 
+    <!-- Watermark -->
+    <img src="/assets/logo.png"
+         style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+                width:420px; opacity:0.15; z-index:0; pointer-events:none;">
+
     <nav class="bg-primary text-white shadow-lg shadow-gray-200" style="position:relative; z-index:10;">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -55,11 +46,9 @@
                         <a href="{{ route('lang.switch', 'ar') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'ar' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-l-md transition">Ar</a>
                         <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'en' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-r-md transition">En</a>
                     </div>
-
                     @auth
                         <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
                     @endauth
-
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
                         <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm">{{ __('Logout') }}</button>
