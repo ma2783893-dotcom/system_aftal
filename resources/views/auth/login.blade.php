@@ -53,4 +53,17 @@
     box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
 }
 </style>
+
+<script>
+    // Force light mode on login page — runs after layout scripts via setTimeout
+    // Does NOT modify localStorage so dark mode persists on other pages
+    setTimeout(function() {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+        var circle = document.getElementById('darkCircle');
+        var toggle = document.getElementById('darkToggle');
+        if (circle) { circle.style.left = '3px'; circle.textContent = '🌙'; }
+        if (toggle) toggle.style.background = 'rgba(255,255,255,0.2)';
+    }, 0);
+</script>
 @endsection
