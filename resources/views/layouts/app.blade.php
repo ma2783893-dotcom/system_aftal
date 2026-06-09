@@ -62,6 +62,69 @@
         @yield('content')
     </main>
 
+    <footer style="
+        background: #0a2540;
+        color: white;
+        padding: 2rem 1rem;
+        margin-top: 3rem;
+        font-family: 'Tajawal', sans-serif;
+        direction: rtl;
+        position: relative;
+        z-index: 1;
+    ">
+        <div style="max-width:1200px; margin:0 auto;">
+
+            <!-- Top Row -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:1.5rem; margin-bottom:1.5rem;">
+
+                <!-- Logo & Name -->
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="/assets/logo-dark.jpg"
+                         style="width:50px; height:50px; border-radius:50%; object-fit:contain;">
+                    <div>
+                        <div style="font-weight:bold; font-size:1.1rem;">جامعة الأفضل الدولية</div>
+                        <div style="font-size:0.75rem; color:#94a3b8;">Al Afdal International University</div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div style="display:flex; gap:1.5rem; font-size:0.9rem; color:#94a3b8;">
+                    <span>📧 ma2783893@gmail.com</span>
+                    <span>📞 +218 919004828</span>
+                    <span>📍 ليبيا</span>
+                </div>
+
+                <!-- System Info -->
+                <div style="text-align:center; font-size:0.8rem; color:#64748b;">
+                    <div>نظام إدارة أعضاء هيئة التدريس</div>
+                    <div style="color:#3b82f6;">الإصدار 1.0.0</div>
+                </div>
+            </div>
+
+            <!-- Bottom Row -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+
+                <!-- Copyright -->
+                <div style="font-size:0.85rem; color:#94a3b8;">
+                    © 2026 جامعة الأفضل الدولية — جميع الحقوق محفوظة
+                </div>
+
+                <!-- Badges -->
+                <div style="display:flex; gap:0.75rem;">
+                    <span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
+                        🔒 نظام آمن
+                    </span>
+                    <span style="background:rgba(16,185,129,0.15); color:#34d399; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
+                        ✓ مرخّص رسمياً
+                    </span>
+                    <span style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:4px 10px; border-radius:20px; font-size:0.75rem;">
+                        ⚡ Laravel 12
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     @livewireScripts
 </body>
 </html>
