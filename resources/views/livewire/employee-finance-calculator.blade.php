@@ -169,23 +169,42 @@
     </div>
 
     <style>
-    @page {
-        size: A4;
-        margin: 0mm;
-    }
     @media print {
-        body * { visibility: hidden; }
-        #print-section, #print-section * { visibility: visible; }
+        /* Hide everything except print section */
+        body > * { display: none !important; }
+        #print-section { display: block !important; }
+
         #print-section {
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%;
-            padding: 15mm 20mm;
+            display: block !important;
+            visibility: visible !important;
+            position: static !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            background: white !important;
+            color: black !important;
+        }
+
+        #print-section * {
+            visibility: visible !important;
+            color: black !important;
+        }
+
+        .no-print { display: none !important; }
+
+        table { width: 100% !important; border-collapse: collapse !important; }
+        th, td { border: 1px solid #333 !important; padding: 8px !important; }
+
+        html, body {
+            height: auto !important;
+            overflow: visible !important;
             background: white !important;
         }
-        .no-print { display: none !important; }
-        th, td { color: black !important; }
-        html, body { height: auto !important; overflow: visible !important; }
+    }
+
+    @page {
+        size: A4;
+        margin: 15mm 10mm;
     }
     </style>
 </div>
