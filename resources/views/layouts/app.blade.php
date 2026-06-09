@@ -91,17 +91,19 @@
                 </div>
                 <div class="flex gap-4 items-center">
 
-                    {{-- Dark Mode Toggle --}}
-                    <button onclick="toggleDark()" id="darkBtn"
-                        style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
-                               color:white; width:40px; height:40px; border-radius:50%; cursor:pointer;
-                               font-size:1.1rem; display:flex; align-items:center; justify-content:center;
-                               transition:all 0.3s ease;"
-                        title="تغيير المظهر"
-                        onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-                        onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                        🌙
-                    </button>
+                    {{-- Dark Mode Toggle Switch --}}
+                    <div onclick="toggleDark()" id="darkToggle"
+                        style="width:52px; height:28px; background:rgba(255,255,255,0.2);
+                               border-radius:14px; cursor:pointer; position:relative;
+                               transition:background 0.3s ease; border:1px solid rgba(255,255,255,0.3);
+                               flex-shrink:0;"
+                        title="تغيير المظهر">
+                        <div id="darkCircle"
+                            style="position:absolute; top:3px; left:3px; width:20px; height:20px;
+                                   background:white; border-radius:50%; transition:all 0.3s ease;
+                                   display:flex; align-items:center; justify-content:center;
+                                   font-size:0.7rem;">🌙</div>
+                    </div>
 
                     {{-- Notification Bell (Admin only) --}}
                     @auth
@@ -206,18 +208,29 @@
     @livewireScripts
 
     <script>
-    // Dark Mode
+    // Dark Mode Toggle Switch
     function toggleDark() {
         document.body.classList.toggle('dark-mode');
-        const btn = document.getElementById('darkBtn');
         const isDark = document.body.classList.contains('dark-mode');
-        btn.textContent = isDark ? '☀️' : '🌙';
+        const circle = document.getElementById('darkCircle');
+        const toggle = document.getElementById('darkToggle');
+        if (isDark) {
+            circle.style.left = '27px';
+            circle.textContent = '☀️';
+            toggle.style.background = '#1e3a8a';
+        } else {
+            circle.style.left = '3px';
+            circle.textContent = '🌙';
+            toggle.style.background = 'rgba(255,255,255,0.2)';
+        }
         localStorage.setItem('darkMode', isDark);
     }
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
-        const btn = document.getElementById('darkBtn');
-        if (btn) btn.textContent = '☀️';
+        const circle = document.getElementById('darkCircle');
+        const toggle = document.getElementById('darkToggle');
+        if (circle) { circle.style.left = '27px'; circle.textContent = '☀️'; }
+        if (toggle) toggle.style.background = '#1e3a8a';
     }
 
     // Close notification dropdown when clicking outside

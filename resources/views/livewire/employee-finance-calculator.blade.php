@@ -104,13 +104,13 @@
 
         <!-- Watermark -->
         <div class="print-watermark">
-            <img src="{{ asset('assets/logo-transparent.png') }}" alt="">
+            <img src="/assets/logo-transparent.png" alt="">
         </div>
 
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
             <div style="text-align:center; margin-bottom:1rem;">
-                <img src="{{ asset('assets/logo-transparent.png') }}" alt="logo"
+                <img src="/assets/logo-transparent.png"
                      style="width:160px; height:160px; object-fit:contain; margin:0 auto; display:block;">
             </div>
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
