@@ -102,11 +102,6 @@
     <!-- Print Layout -->
     <div id="print-section" class="hidden" dir="rtl">
 
-        <!-- Watermark -->
-        <div class="print-watermark">
-            <img src="/assets/logo-dark.jpg" alt="">
-        </div>
-
         <!-- Print Header -->
         <div style="text-align:center; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:3px solid #0a2540;">
             <img src="/assets/logo-dark.jpg"
@@ -174,6 +169,10 @@
     </div>
 
     <style>
+    @page {
+        size: A4;
+        margin: 0mm;
+    }
     @media print {
         body * { visibility: hidden; }
         #print-section, #print-section * { visibility: visible; }
@@ -181,45 +180,12 @@
             position: absolute;
             left: 0; top: 0;
             width: 100%;
-            padding: 20px;
-            display: block !important;
+            padding: 15mm 20mm;
             background: white !important;
-            font-family: Arial, sans-serif;
-        }
-        @page {
-            size: A4;
-            margin: 15mm;
         }
         .no-print { display: none !important; }
         th, td { color: black !important; }
-        th.bg-gray-100 {
-            background-color: #f3f4f6 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        tr { page-break-inside: avoid; }
         html, body { height: auto !important; overflow: visible !important; }
-        /* Watermark — subtle and professional */
-        .print-watermark {
-            display: block !important;
-            visibility: visible !important;
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 350px !important;
-            height: 350px !important;
-            pointer-events: none !important;
-            z-index: 0 !important;
-            opacity: 0.06 !important;
-        }
-        .print-watermark img {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
     }
     </style>
 </div>
