@@ -93,8 +93,13 @@
 
                     {{-- Dark Mode Toggle --}}
                     <button onclick="toggleDark()" id="darkBtn"
-                        style="background:rgba(255,255,255,0.1); border:none; color:white;
-                               padding:6px 12px; border-radius:8px; cursor:pointer; font-size:1rem;">
+                        style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+                               color:white; width:40px; height:40px; border-radius:50%; cursor:pointer;
+                               font-size:1.1rem; display:flex; align-items:center; justify-content:center;
+                               transition:all 0.3s ease;"
+                        title="تغيير المظهر"
+                        onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                         🌙
                     </button>
 

@@ -109,9 +109,10 @@
 
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
+            <img src="{{ asset('assets/logo-dark.jpg') }}" alt="logo"
+                 style="width:100px; height:100px; object-fit:contain; margin:0 auto 1rem auto; display:block;">
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
             <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
-            <p class="text-sm">{{ __('Print Date:') }} {{ now()->format('Y-m-d H:i') }}</p>
         </div>
 
         <!-- Table -->

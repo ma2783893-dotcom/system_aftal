@@ -76,8 +76,21 @@
                         class="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
                     <input type="email" name="email" placeholder="{{ __('Email') }}"
                         class="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                    <input type="text" name="specialization" placeholder="{{ __('Specialization') }}"
+                    <input type="text" name="specialization" list="spec-list"
+                        placeholder="{{ __('Specialization') }}"
                         class="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    <datalist id="spec-list">
+                        @foreach($specializations as $spec)
+                            <option value="{{ $spec }}">
+                        @endforeach
+                        <option value="محاضر">
+                        <option value="أستاذ مساعد">
+                        <option value="أستاذ مشارك">
+                        <option value="أستاذ">
+                        <option value="مهندس">
+                        <option value="محاسب">
+                        <option value="إداري">
+                    </datalist>
                     <input type="password" name="password" placeholder="{{ __('Password') }}"
                         class="border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
                 </div>
