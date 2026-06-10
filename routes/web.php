@@ -144,21 +144,28 @@ Route::post('/add-employee', function (Request $request) {
         $request->profile_photo->move(public_path('uploads/photos'), $photoFileName);
     }
 
-    $employee = User::create([
-        'name'          => $request->name,
-        'email'         => $request->email,
-        'specialization'=> $request->specialization,
-        'role'          => 'employee',
-        'cv'            => $cvFileName,
-        'profile_photo' => $photoFileName,
-        'password'      => Hash::make($request->password),
-    ]);
+    try {
+        $employee = User::create([
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'specialization'=> $request->specialization,
+            'role'          => 'employee',
+            'cv'            => $cvFileName,
+            'profile_photo' => $photoFileName,
+            'password'      => Hash::make($request->password),
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Employee create failed: ' . $e->getMessage());
+        return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()]);
+    }
+
+    \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name);
 
     // Notification
     try {
         AppNotification::create([
+            'title'   => 'موظف جديد',
             'message' => 'تم إضافة موظف جديد: ' . $employee->name,
-            'type'    => 'new_employee',
             'is_read' => false,
         ]);
     } catch (\Exception $e) {}
@@ -174,7 +181,7 @@ Route::post('/add-employee', function (Request $request) {
         ]);
     } catch (\Exception $e) {}
 
-    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح');
+    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح — ID: ' . $employee->id);
 })->middleware('auth');
 
 // حذف الموظف مع ملفه من الجهاز

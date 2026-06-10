@@ -8,5 +8,5 @@ class AppNotification extends Model
 {
     protected $table = 'app_notifications';
 
-    protected $fillable = ['message', 'type', 'is_read'];
+    protected $fillable = ['title', 'message', 'is_read', 'user_id'];
 }
