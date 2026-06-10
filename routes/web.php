@@ -160,6 +160,7 @@ Route::post('/add-employee', function (Request $request) {
     }
 
     \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name);
+    dd('✅ Employee saved — ID: ' . $employee->id . ' | Name: ' . $employee->name . ' | Role: ' . $employee->role);
 
     // Notification
     try {
