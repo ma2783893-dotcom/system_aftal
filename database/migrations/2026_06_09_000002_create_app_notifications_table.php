@@ -9,9 +9,10 @@ return new class extends Migration {
     {
         Schema::create('app_notifications', function (Blueprint $table) {
             $table->id();
-            $table->string('message');
-            $table->string('type')->default('general');
+            $table->string('title');
+            $table->text('message')->nullable();
             $table->boolean('is_read')->default(false);
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
