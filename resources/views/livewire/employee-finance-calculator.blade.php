@@ -109,8 +109,8 @@
                      alt="Al-Afdal Logo"
                      style="width:160px; height:auto; display:inline-block;">
             </div>
-            <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
-            <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
+            <h1 class="text-2xl font-bold mb-2">{{ app()->getLocale() === 'ar' ? 'جامعة الأفضل الدولية' : 'Al-Afdal International University' }}</h1>
+            <h2 class="text-xl mb-2">{{ app()->getLocale() === 'ar' ? 'التقرير المالي' : 'Financial Report' }}</h2>
             <p style="text-align:left; font-size:13px; color:#444; margin:4px 0 10px 0;">
                 {{ \Carbon\Carbon::now()->format('d/m/Y') }}
             </p>
@@ -120,29 +120,29 @@
         <table class="w-full border-collapse border border-gray-800 text-right">
             <tbody>
                 <tr>
-                    <th class="border border-gray-800 p-3 bg-gray-100" style="width:20%;">{{ __('Name') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100" style="width:20%;">{{ app()->getLocale() === 'ar' ? 'الاسم' : 'Name' }}</th>
                     <td class="border border-gray-800 p-3" style="width:30%;">{{ $employee?->name ?? 'N/A' }}</td>
-                    <th class="border border-gray-800 p-3 bg-gray-100" style="width:20%;">{{ __('Major') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100" style="width:20%;">{{ app()->getLocale() === 'ar' ? 'التخصص' : 'Major' }}</th>
                     <td class="border border-gray-800 p-3" style="width:30%;">{{ $employee?->specialization ?? __('Not Available') }}</td>
                 </tr>
                 <tr>
-                    <th class="border border-gray-800 p-3 bg-gray-100">{{ __('Semester') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100">{{ app()->getLocale() === 'ar' ? 'الفصل الدراسي' : 'Semester' }}</th>
                     <td class="border border-gray-800 p-3" colspan="3">{{ $selectedSemester?->name ?? 'N/A' }}</td>
                 </tr>
                 <tr>
-                    <th class="border border-gray-800 p-3 bg-gray-100">{{ __('Basic Salary') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100">{{ app()->getLocale() === 'ar' ? 'الراتب الأساسي' : 'Basic Salary' }}</th>
                     <td class="border border-gray-800 p-3">{{ number_format((float) $salary, 2) }}</td>
-                    <th class="border border-gray-800 p-3 bg-gray-100">{{ __('Bonuses') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100">{{ app()->getLocale() === 'ar' ? 'المكافآت' : 'Bonuses' }}</th>
                     <td class="border border-gray-800 p-3">{{ number_format((float) $bonus, 2) }}</td>
                 </tr>
                 <tr>
-                    <th class="border border-gray-800 p-3 bg-gray-100">{{ __('Deductions') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100">{{ app()->getLocale() === 'ar' ? 'الخصومات' : 'Deductions' }}</th>
                     <td class="border border-gray-800 p-3">{{ number_format((float) $deductions, 2) }}</td>
-                    <th class="border border-gray-800 p-3 bg-gray-100">{{ __('Working Hours') }}</th>
+                    <th class="border border-gray-800 p-3 bg-gray-100">{{ app()->getLocale() === 'ar' ? 'ساعات العمل' : 'Working Hours' }}</th>
                     <td class="border border-gray-800 p-3">{{ $hours }} {{ __('hrs') }}</td>
                 </tr>
                 <tr>
-                    <th class="border border-gray-800 p-4 bg-gray-100 text-lg" colspan="2">{{ __('Total Payable') }}</th>
+                    <th class="border border-gray-800 p-4 bg-gray-100 text-lg" colspan="2">{{ app()->getLocale() === 'ar' ? 'إجمالي المستحق' : 'Total Payable' }}</th>
                     <td class="border border-gray-800 p-4 font-bold text-xl text-center" colspan="2">
                         {{ number_format(floatval($salary) + floatval($bonus) + floatval($totalDue) - floatval($deductions), 2) }}
                     </td>
@@ -153,14 +153,14 @@
         <!-- Signatures -->
         <div style="margin-top:80px; padding:0 5%; display:flex; justify-content:space-between;" dir="ltr">
             <div style="text-align:center; min-width:160px;">
-                <p style="font-weight:bold; font-size:1.1rem; margin-bottom:50px;" dir="rtl">رئيس الجامعة</p>
+                <p style="font-weight:bold; font-size:1.1rem; margin-bottom:50px;" dir="rtl">{{ app()->getLocale() === 'ar' ? 'رئيس الجامعة' : 'University President' }}</p>
                 <div style="border-top:1px solid #333; width:160px;"></div>
-                <p style="font-size:0.8rem; color:#555; margin-top:6px;" dir="rtl">التوقيع</p>
+                <p style="font-size:0.8rem; color:#555; margin-top:6px;" dir="rtl">{{ app()->getLocale() === 'ar' ? 'التوقيع' : 'Signature' }}</p>
             </div>
             <div style="text-align:center; min-width:160px;">
-                <p style="font-weight:bold; font-size:1.1rem; margin-bottom:50px;" dir="rtl">محاسب الجامعة</p>
+                <p style="font-weight:bold; font-size:1.1rem; margin-bottom:50px;" dir="rtl">{{ app()->getLocale() === 'ar' ? 'محاسب الجامعة' : 'University Accountant' }}</p>
                 <div style="border-top:1px solid #333; width:160px;"></div>
-                <p style="font-size:0.8rem; color:#555; margin-top:6px;" dir="rtl">التوقيع</p>
+                <p style="font-size:0.8rem; color:#555; margin-top:6px;" dir="rtl">{{ app()->getLocale() === 'ar' ? 'التوقيع' : 'Signature' }}</p>
             </div>
         </div>
     </div>
