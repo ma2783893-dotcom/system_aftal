@@ -104,10 +104,6 @@
 
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
-            <div style="text-align:center; margin-bottom:1rem;">
-                <img src="/assets/logo-transparent.png"
-                     style="width:120px; height:120px; object-fit:contain; margin:0 auto 0.75rem auto; display:block;">
-            </div>
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
             <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
         </div>
