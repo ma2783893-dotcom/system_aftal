@@ -117,6 +117,11 @@
         </div>
     </div>
 
+    {{-- DEBUG: employee count (remove after fix) --}}
+    <div style="background:#fef9c3; border:1px solid #ca8a04; color:#713f12; padding:8px 14px; border-radius:8px; margin-bottom:12px; font-size:0.85rem;">
+        🔍 Debug: employees in \$employees = {{ $employees->count() }} | totalEmployees = {{ $totalEmployees }}
+    </div>
+
     {{-- Employee Table --}}
     <div class="bg-white p-4 rounded shadow overflow-x-auto">
         <table class="w-full text-start border-collapse">

@@ -72,12 +72,16 @@ Route::get('/', function () {
         return redirect('/profile/' . Auth::id());
     }
 
-    $employees       = User::where('role', 'employee')->get();
-    $totalEmployees  = $employees->count();
-    $totalHours      = Attendance::sum('hours_worked') ?? 0;
-    $totalSalaries   = Finance::sum('salary') ?? 0;
+    $employees    = User::where('role', 'employee')->get();
+    $totalEmployees = $employees->count();
+
+    try { $totalHours = Attendance::sum('hours_worked') ?? 0; } catch (\Exception $e) { $totalHours = 0; }
+    try { $totalSalaries = Finance::sum('salary') ?? 0; } catch (\Exception $e) { $totalSalaries = 0; }
+
     $totalDepartments = User::where('role', 'employee')->distinct('specialization')->count('specialization');
     $specializations  = User::where('role', 'employee')->whereNotNull('specialization')->distinct()->pluck('specialization');
+
+    \Log::info('Dashboard loaded: employees=' . $totalEmployees . ' | user=' . Auth::id());
 
     return view('admin.dashboard', compact(
         'employees', 'totalEmployees', 'totalHours',
@@ -159,14 +163,9 @@ Route::post('/add-employee', function (Request $request) {
         return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()]);
     }
 
-    \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name);
-    $dbCheck = \DB::table('users')->where('id', $employee->id)->first();
-    return response()->json([
-        'status'           => 'created',
-        'model_data'       => $employee->toArray(),
-        'db_direct'        => $dbCheck,
-        'total_employees'  => \DB::table('users')->where('role', 'employee')->count(),
-    ]);
+    \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name . ' Role=' . $employee->role);
+
+    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح: ' . $employee->name);
 
     // Notification
     try {
