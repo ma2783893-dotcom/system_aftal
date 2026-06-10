@@ -160,7 +160,13 @@ Route::post('/add-employee', function (Request $request) {
     }
 
     \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name);
-    dd('✅ Employee saved — ID: ' . $employee->id . ' | Name: ' . $employee->name . ' | Role: ' . $employee->role);
+    $dbCheck = \DB::table('users')->where('id', $employee->id)->first();
+    return response()->json([
+        'status'           => 'created',
+        'model_data'       => $employee->toArray(),
+        'db_direct'        => $dbCheck,
+        'total_employees'  => \DB::table('users')->where('role', 'employee')->count(),
+    ]);
 
     // Notification
     try {
