@@ -117,6 +117,37 @@ Route::post('/profile/{id}/finance', function (Request $request, $id) {
     return back()->with('success', 'تم التحديث المالي بنجاح');
 })->middleware('auth');
 
+// إضافة مشرف جديد
+Route::post('/add-supervisor', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+
+    $request->validate([
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6',
+    ]);
+
+    $supervisor = User::create([
+        'name'        => $request->name,
+        'email'       => $request->email,
+        'password'    => Hash::make($request->password),
+        'role'        => 'supervisor',
+        'permissions' => json_encode($request->permissions ?? []),
+    ]);
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'added_supervisor',
+            'target'     => $supervisor->name,
+            'details'    => 'Permissions: ' . implode(', ', $request->permissions ?? ['none']),
+            'ip_address' => $request->ip(),
+        ]);
+    } catch (\Exception $e) {}
+
+    return redirect('/')->with('success', 'تم إضافة المشرف بنجاح: ' . $supervisor->name);
+})->middleware('auth');
+
 // صفحة إضافة موظف جديد
 Route::get('/create-employee', function () {
     if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
@@ -398,9 +429,19 @@ Route::get('/notifications/mark-read', function () {
 Route::get('/activity-log', function () {
     if (Auth::user()->role !== 'admin') abort(403);
     try {
-        $logs = ActivityLog::with('user')->latest()->paginate(30);
+        $logs = ActivityLog::with('user')->latest()->paginate(50);
+        $sessionSummary = ActivityLog::with('user')
+            ->selectRaw('user_id, DATE(created_at) as date,
+                         COUNT(*) as total_actions,
+                         SUM(action = "added_employee") as added,
+                         SUM(action LIKE "edit%") as edited,
+                         SUM(action LIKE "delete%") as deleted')
+            ->groupBy('user_id', 'date')
+            ->orderBy('date', 'desc')
+            ->get();
     } catch (\Exception $e) {
         $logs = collect();
+        $sessionSummary = collect();
     }
-    return view('admin.activity-log', compact('logs'));
+    return view('admin.activity-log', compact('logs', 'sessionSummary'));
 })->middleware('auth');

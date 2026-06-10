@@ -26,6 +26,7 @@ class User extends Authenticatable
         'specialization',
         'cv',
         'profile_photo',
+        'permissions',
     ];
 
     /**

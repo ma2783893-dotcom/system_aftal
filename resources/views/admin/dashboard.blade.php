@@ -36,6 +36,14 @@
                style="background:#7c3aed; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📊 {{ __('Monthly Report') }}
             </a>
+            <a href="/activity-log"
+               style="background:#374151; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                📋 سجل النشاط
+            </a>
+            <button onclick="document.getElementById('addSupervisorModal').classList.remove('hidden')"
+                style="background:#7c3aed; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-size:1rem; font-weight:bold;">
+                + إضافة مشرف
+            </button>
             <button onclick="document.getElementById('addModal').style.display='flex'"
                 style="background:#16a34a; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-size:1rem; font-weight:bold;">
                 + {{ __('Add New Employee') }}
@@ -117,9 +125,47 @@
         </div>
     </div>
 
-    {{-- DEBUG: employee count (remove after fix) --}}
-    <div style="background:#fef9c3; border:1px solid #ca8a04; color:#713f12; padding:8px 14px; border-radius:8px; margin-bottom:12px; font-size:0.85rem;">
-        🔍 Debug: employees in \$employees = {{ $employees->count() }} | totalEmployees = {{ $totalEmployees }}
+    {{-- Add Supervisor Modal --}}
+    <div id="addSupervisorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md" style="max-height:90vh; overflow-y:auto;">
+            <h2 style="font-size:1.25rem; font-weight:700; color:#0a2540; margin-bottom:1.25rem;">إضافة مشرف جديد</h2>
+            <form method="POST" action="/add-supervisor">
+                @csrf
+                <input type="text" name="name" placeholder="الاسم" required
+                       class="w-full border border-gray-300 p-2 rounded mb-3 font-inherit">
+                <input type="email" name="email" placeholder="البريد الإلكتروني" required
+                       class="w-full border border-gray-300 p-2 rounded mb-3 font-inherit">
+                <input type="password" name="password" placeholder="كلمة المرور (6 أحرف على الأقل)" required
+                       class="w-full border border-gray-300 p-2 rounded mb-4 font-inherit">
+
+                <p style="font-weight:700; margin-bottom:0.6rem; color:#374151;">الصلاحيات:</p>
+                @foreach([
+                    'add_employee'    => 'إضافة موظفين',
+                    'edit_employee'   => 'تعديل بيانات الموظفين',
+                    'delete_employee' => 'حذف الموظفين',
+                    'view_finance'    => 'عرض البيانات المالية',
+                    'edit_finance'    => 'تعديل البيانات المالية',
+                    'view_reports'    => 'عرض التقارير',
+                ] as $val => $label)
+                <label class="flex items-center gap-2 mb-2 cursor-pointer">
+                    <input type="checkbox" name="permissions[]" value="{{ $val }}">
+                    <span>{{ $label }}</span>
+                </label>
+                @endforeach
+
+                <div class="flex gap-2 mt-5">
+                    <button type="submit"
+                            style="background:#7c3aed; color:white; padding:10px 0; border-radius:8px; border:none; cursor:pointer; font-weight:700; flex:1; font-family:inherit;">
+                        حفظ المشرف
+                    </button>
+                    <button type="button"
+                            onclick="document.getElementById('addSupervisorModal').classList.add('hidden')"
+                            style="background:#e5e7eb; color:#374151; padding:10px 0; border-radius:8px; border:none; cursor:pointer; font-weight:600; flex:1; font-family:inherit;">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     {{-- Employee Table --}}
