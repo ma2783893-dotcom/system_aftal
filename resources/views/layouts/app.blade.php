@@ -45,6 +45,60 @@
             color: #e2e8f0 !important;
             border-color: #475569 !important;
         }
+        /* Dark Mode Switch */
+        .switch {
+            font-size: 17px;
+            position: relative;
+            display: inline-block;
+            width: 3.5em;
+            height: 2em;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 1.4em;
+            width: 1.4em;
+            right: 0.3em;
+            bottom: 0.3em;
+            transform: translateX(150%);
+            background-color: #59d102;
+            border-radius: inherit;
+            transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        .slider:after {
+            position: absolute;
+            content: "";
+            height: 1.4em;
+            width: 1.4em;
+            left: 0.3em;
+            bottom: 0.3em;
+            background-color: #cccccc;
+            border-radius: inherit;
+            transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        .switch input:focus + .slider {
+            box-shadow: 0 0 1px #59d102;
+        }
+        .switch input:checked + .slider:before {
+            transform: translateY(0);
+        }
+        .switch input:checked + .slider::after {
+            transform: translateX(-150%);
+        }
     </style>
     <script>
         tailwind.config = {
@@ -75,18 +129,10 @@
 
                     {{-- Dark Mode Toggle Switch (auth only) --}}
                     @auth
-                    <div onclick="toggleDark()" id="darkToggle"
-                        style="width:52px; height:28px; background:rgba(255,255,255,0.2);
-                               border-radius:14px; cursor:pointer; position:relative;
-                               transition:background 0.3s ease; border:1px solid rgba(255,255,255,0.3);
-                               flex-shrink:0;"
-                        title="تغيير المظهر">
-                        <div id="darkCircle"
-                            style="position:absolute; top:3px; left:3px; width:20px; height:20px;
-                                   background:white; border-radius:50%; transition:all 0.3s ease;
-                                   display:flex; align-items:center; justify-content:center;
-                                   font-size:0.7rem;">🌙</div>
-                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeCheckbox">
+                        <span class="slider"></span>
+                    </label>
                     @endauth
 
                     {{-- Notification Bell (Admin only) --}}
@@ -192,29 +238,22 @@
     @livewireScripts
 
     <script>
-    // Dark Mode Toggle Switch
-    function toggleDark() {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        const circle = document.getElementById('darkCircle');
-        const toggle = document.getElementById('darkToggle');
-        if (isDark) {
-            circle.style.left = '27px';
-            circle.textContent = '☀️';
-            toggle.style.background = '#1e3a8a';
-        } else {
-            circle.style.left = '3px';
-            circle.textContent = '🌙';
-            toggle.style.background = 'rgba(255,255,255,0.2)';
+    // Dark Mode Checkbox Switch
+    const checkbox = document.getElementById('darkModeCheckbox');
+    if (checkbox) {
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            checkbox.checked = true;
         }
-        localStorage.setItem('darkMode', isDark);
-    }
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        const circle = document.getElementById('darkCircle');
-        const toggle = document.getElementById('darkToggle');
-        if (circle) { circle.style.left = '27px'; circle.textContent = '☀️'; }
-        if (toggle) toggle.style.background = '#1e3a8a';
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
     }
 
     // Close notification dropdown when clicking outside

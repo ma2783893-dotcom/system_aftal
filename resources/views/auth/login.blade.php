@@ -55,15 +55,12 @@
 </style>
 
 <script>
-    // Force light mode on login page — runs after layout scripts via setTimeout
-    // Does NOT modify localStorage so dark mode persists on other pages
+    // Force light mode on login page — does NOT modify localStorage
     setTimeout(function() {
         document.body.classList.remove('dark-mode');
         document.documentElement.classList.remove('dark-mode');
-        var circle = document.getElementById('darkCircle');
-        var toggle = document.getElementById('darkToggle');
-        if (circle) { circle.style.left = '3px'; circle.textContent = '🌙'; }
-        if (toggle) toggle.style.background = 'rgba(255,255,255,0.2)';
+        var cb = document.getElementById('darkModeCheckbox');
+        if (cb) cb.checked = false;
     }, 0);
 </script>
 @endsection
