@@ -104,14 +104,14 @@
 
         <!-- Header -->
         <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
-            <div style="text-align:center; margin-bottom:10px;">
-                <img src="{{ asset('assets/logo-transparent.png') }}"
-                     alt="Al-Afdal University Logo"
-                     style="width:150px; height:auto; background:transparent; display:inline-block;">
+            <div style="text-align:center; margin-bottom:8px;">
+                <img src="{{ asset('assets/logo-print.png') }}"
+                     alt="Al-Afdal Logo"
+                     style="width:160px; height:auto; display:inline-block;">
             </div>
             <h1 class="text-2xl font-bold mb-2">{{ __('Al-Afdal International University') }}</h1>
             <h2 class="text-xl mb-2">{{ __('Financial Report') }}</h2>
-            <p style="text-align:center; font-size:13px; color:#444; margin:4px 0;">
+            <p style="text-align:left; font-size:13px; color:#444; margin:4px 0 10px 0;">
                 {{ \Carbon\Carbon::now()->format('d/m/Y') }}
             </p>
         </div>
