@@ -12,6 +12,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (env('APP_ENV') === 'production') {
+            \URL::forceScheme('https');
+        }
+
         View::composer('layouts.app', function ($view) {
             if (auth()->check() && auth()->user()->isAdmin()) {
                 try {
