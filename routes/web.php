@@ -419,7 +419,7 @@ Route::post('/attendance/check-in', function (Request $request) {
         'latitude'          => $request->latitude,
         'longitude'         => $request->longitude,
         'distance_meters'   => round($distance, 2),
-        'location_verified' => $distance <= 100,
+        'location_verified' => $distance <= 50,
         'ip_address'        => $request->ip(),
     ]);
 

@@ -74,7 +74,7 @@
     <script>
     const UNIVERSITY_LAT = 32.028255;
     const UNIVERSITY_LNG = 20.068791;
-    const MAX_DISTANCE   = 100;
+    const MAX_DISTANCE   = 50;
     let userLat = null, userLng = null;
 
     function startCheckIn() {
