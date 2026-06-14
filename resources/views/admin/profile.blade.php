@@ -37,6 +37,9 @@
                     📍 تسجيل الحضور اليوم
                 </button>
                 <p style="color:#94a3b8; font-size:0.82rem; margin-top:8px;">{{ now()->format('l، d/m/Y') }}</p>
+                <p style="color:#9ca3af; font-size:0.75rem; margin-top:6px; text-align:center;">
+                    📱 متاح من الهاتف المحمول فقط
+                </p>
             </div>
         @endif
     </div>
@@ -78,6 +81,13 @@
     let userLat = null, userLng = null;
 
     function startCheckIn() {
+        const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i
+                         .test(navigator.userAgent);
+        if (!isMobile) {
+            alert('⚠️ تسجيل الحضور متاح من الهاتف المحمول فقط.\nيرجى فتح الرابط من هاتفك.');
+            return;
+        }
+
         document.getElementById('locationModal').classList.remove('hidden');
         document.getElementById('locationStatus').classList.remove('hidden');
         document.getElementById('locationStatus').innerHTML = '<div style="font-size:2.5rem;margin-bottom:10px;">🔄</div><p style="color:#6b7280;">جاري تحديد موقعك...</p>';
