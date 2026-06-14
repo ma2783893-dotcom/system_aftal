@@ -72,11 +72,23 @@
     </div>
 
     {{-- Add Employee Modal --}}
-    <div id="addModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+    <div id="addModal" style="display:{{ $errors->any() ? 'flex' : 'none' }}; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
         <div style="background:white; padding:2rem; border-radius:1rem; width:90%; max-width:620px; position:relative; max-height:90vh; overflow-y:auto;">
             <button onclick="document.getElementById('addModal').style.display='none'"
                 style="position:absolute; top:10px; left:10px; background:none; border:none; font-size:1.5rem; cursor:pointer; line-height:1; color:#64748b;">✕</button>
             <h2 style="margin-bottom:1.5rem; color:#0a2540; font-size:1.25rem; font-weight:700;">{{ __('Add New Employee') }}</h2>
+            @if($errors->any())
+            <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:12px; margin-bottom:1rem;">
+                @foreach($errors->all() as $err)
+                    <p style="color:#dc2626; font-size:0.875rem; margin:2px 0;">⚠️ {{ $err }}</p>
+                @endforeach
+            </div>
+            @endif
+            @if(session('success'))
+            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px; margin-bottom:1rem;">
+                <p style="color:#15803d; font-size:0.875rem; margin:0;">✅ {{ session('success') }}</p>
+            </div>
+            @endif
             <form action="/add-employee" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

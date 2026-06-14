@@ -156,7 +156,10 @@ Route::get('/create-employee', function () {
 
 // معالجة إضافة الموظف (مع التشفير ورفع الملف)
 Route::post('/add-employee', function (Request $request) {
+    \Log::info('ADD EMPLOYEE HIT', $request->except(['password', 'cv', 'profile_photo']));
+
     if (Auth::user()->role !== 'admin') abort(403);
+
     $request->validate([
         'name'          => 'required|string|max:255',
         'email'         => 'required|email|unique:users,email',
@@ -170,13 +173,17 @@ Route::post('/add-employee', function (Request $request) {
     $photoFileName = null;
 
     if ($request->hasFile('cv')) {
+        $dir = public_path('uploads/cv');
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
         $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
-        $request->cv->move(public_path('uploads/cv'), $cvFileName);
+        $request->cv->move($dir, $cvFileName);
     }
 
     if ($request->hasFile('profile_photo')) {
+        $dir = public_path('uploads/photos');
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
         $photoFileName = time() . '_' . $request->profile_photo->getClientOriginalName();
-        $request->profile_photo->move(public_path('uploads/photos'), $photoFileName);
+        $request->profile_photo->move($dir, $photoFileName);
     }
 
     try {
@@ -191,14 +198,11 @@ Route::post('/add-employee', function (Request $request) {
         ]);
     } catch (\Exception $e) {
         \Log::error('Employee create failed: ' . $e->getMessage());
-        return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()]);
+        return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()])->withInput();
     }
 
-    \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name . ' Role=' . $employee->role);
+    \Log::info('Employee created: ID=' . $employee->id . ' Name=' . $employee->name);
 
-    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح: ' . $employee->name);
-
-    // Notification
     try {
         AppNotification::create([
             'title'   => 'موظف جديد',
@@ -207,7 +211,6 @@ Route::post('/add-employee', function (Request $request) {
         ]);
     } catch (\Exception $e) {}
 
-    // Activity Log
     try {
         ActivityLog::create([
             'user_id'    => Auth::id(),
@@ -218,7 +221,7 @@ Route::post('/add-employee', function (Request $request) {
         ]);
     } catch (\Exception $e) {}
 
-    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح — ID: ' . $employee->id);
+    return redirect('/')->with('success', 'تم إضافة الموظف بنجاح: ' . $employee->name);
 })->middleware('auth');
 
 // حذف الموظف مع ملفه من الجهاز
