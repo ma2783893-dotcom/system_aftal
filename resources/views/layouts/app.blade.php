@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>جامعة الأفضل الدولية - @yield('title')</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0a2540">

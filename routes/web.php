@@ -382,6 +382,80 @@ Route::get('/run-migrate', function () {
 // PDF Monthly Report
 Route::get('/reports/monthly', [ReportController::class, 'monthly'])->middleware('auth');
 
+// GPS Check-in
+Route::post('/attendance/check-in', function (Request $request) {
+    $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'latitude'    => 'required|numeric',
+        'longitude'   => 'required|numeric',
+    ]);
+
+    $empId = (int) $request->employee_id;
+    if (Auth::id() !== $empId && Auth::user()->role !== 'admin') {
+        return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+    }
+
+    $exists = Attendance::where('employee_id', $empId)->where('date', today())->exists();
+    if ($exists) {
+        return response()->json(['success' => false, 'message' => 'تم تسجيل حضورك مسبقاً اليوم']);
+    }
+
+    $uniLat = 32.028255;
+    $uniLng = 20.068791;
+    $R  = 6371000;
+    $φ1 = deg2rad($request->latitude);
+    $φ2 = deg2rad($uniLat);
+    $Δφ = deg2rad($uniLat - $request->latitude);
+    $Δλ = deg2rad($uniLng  - $request->longitude);
+    $a  = sin($Δφ/2)**2 + cos($φ1)*cos($φ2)*sin($Δλ/2)**2;
+    $distance = $R * 2 * atan2(sqrt($a), sqrt(1-$a));
+
+    Attendance::create([
+        'employee_id'       => $empId,
+        'date'              => today(),
+        'hours_worked'      => 0,
+        'status'            => 'present',
+        'check_in_time'     => now()->toTimeString(),
+        'latitude'          => $request->latitude,
+        'longitude'         => $request->longitude,
+        'distance_meters'   => round($distance, 2),
+        'location_verified' => $distance <= 100,
+        'ip_address'        => $request->ip(),
+    ]);
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'check_in',
+            'target'     => User::find($empId)->name,
+            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($distance <= 100 ? 'Yes' : 'No'),
+            'ip_address' => $request->ip(),
+        ]);
+    } catch (\Exception $e) {}
+
+    return response()->json([
+        'success'  => true,
+        'message'  => 'تم تسجيل الحضور بنجاح',
+        'distance' => round($distance),
+        'verified' => $distance <= 100,
+        'time'     => now()->format('H:i'),
+    ]);
+})->middleware('auth');
+
+// Attendance Detail (admin)
+Route::get('/attendance/detail/{id}', function ($id) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $att = Attendance::with('employee')->findOrFail($id);
+    return response()->json([
+        'name'     => $att->employee->name,
+        'time'     => $att->check_in_time,
+        'distance' => round($att->distance_meters ?? 0),
+        'verified' => (bool) $att->location_verified,
+        'lat'      => $att->latitude,
+        'lng'      => $att->longitude,
+    ]);
+})->middleware('auth');
+
 // Attendance Calendar
 Route::get('/attendance/calendar', function (Request $request) {
     if (Auth::user()->role !== 'admin') abort(403);
@@ -394,11 +468,16 @@ Route::get('/attendance/calendar', function (Request $request) {
     $endOfMonth   = Carbon::parse($selectedMonth)->endOfMonth();
     $startOffset  = $startOfMonth->dayOfWeek; // 0=Sun
 
-    $attendanceQuery = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth]);
+    $attendanceQuery = Attendance::with('employee')
+        ->whereBetween('date', [$startOfMonth, $endOfMonth]);
     if ($employeeId) {
         $attendanceQuery->where('employee_id', $employeeId);
     }
-    $attendanceRecords = $attendanceQuery->get()->keyBy(fn($a) => Carbon::parse($a->date)->format('Y-m-d'));
+    $allAttendances    = $attendanceQuery->get();
+    $attendanceRecords = $allAttendances->keyBy(fn($a) => Carbon::parse($a->date)->format('Y-m-d'));
+
+    // Group by date for multi-employee view
+    $attendancesByDate = $allAttendances->groupBy(fn($a) => Carbon::parse($a->date)->format('Y-m-d'));
 
     $days = [];
     for ($d = 1; $d <= $endOfMonth->day; $d++) {
@@ -406,13 +485,14 @@ Route::get('/attendance/calendar', function (Request $request) {
         $record  = $attendanceRecords[$dateStr] ?? null;
         $days[]  = [
             'date'    => $d,
+            'dateStr' => $dateStr,
             'present' => $record !== null,
             'absent'  => false,
             'hours'   => $record ? $record->hours_worked : 0,
         ];
     }
 
-    return view('attendance.calendar', compact('employees', 'days', 'selectedMonth', 'startOffset'));
+    return view('attendance.calendar', compact('employees', 'days', 'selectedMonth', 'startOffset', 'attendancesByDate'));
 })->middleware('auth');
 
 // Mark all notifications as read

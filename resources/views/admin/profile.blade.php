@@ -7,6 +7,166 @@
         <a href="/" class="text-blue-500 hover:text-blue-700 underline font-medium">&larr; {{ __('Back to Dashboard') }}</a>
     </div>
 
+    {{-- GPS Check-in Section --}}
+    @if(auth()->id() === $emp->id || auth()->user()->isAdmin())
+    @php
+        $todayAttendance = \App\Models\Attendance::where('employee_id', $emp->id)
+            ->where('date', today())->first();
+    @endphp
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        @if($todayAttendance)
+            <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px;">
+                <span style="font-size:1.8rem;">✅</span>
+                <div>
+                    <p style="font-weight:700; color:#15803d; margin:0;">تم تسجيل الحضور اليوم</p>
+                    <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 0;">
+                        الوقت: <strong>{{ substr($todayAttendance->check_in_time ?? '', 0, 5) }}</strong>
+                        @if($todayAttendance->distance_meters !== null)
+                            | المسافة: <strong>{{ round($todayAttendance->distance_meters) }} متر</strong>
+                        @endif
+                        | {{ $todayAttendance->location_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
+                    </p>
+                </div>
+            </div>
+        @else
+            <div style="text-align:center;">
+                <button id="checkInBtn" onclick="startCheckIn()"
+                        style="background:#16a34a; color:white; font-weight:700; padding:14px 36px;
+                               border-radius:14px; border:none; cursor:pointer; font-size:1.1rem;
+                               font-family:inherit; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
+                    📍 تسجيل الحضور اليوم
+                </button>
+                <p style="color:#94a3b8; font-size:0.82rem; margin-top:8px;">{{ now()->format('l، d/m/Y') }}</p>
+            </div>
+        @endif
+    </div>
+
+    {{-- Location Modal --}}
+    <div id="locationModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h3 style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:16px;">📍 تحديد الموقع</h3>
+
+            <div id="locationStatus" style="text-align:center; padding:20px;">
+                <div style="font-size:2.5rem; margin-bottom:10px;">🔄</div>
+                <p style="color:#6b7280;">جاري تحديد موقعك...</p>
+            </div>
+
+            <div id="map" class="hidden w-full rounded-xl mb-4" style="height:180px; background:#f1f5f9;"></div>
+
+            <div id="locationInfo" class="hidden">
+                <div id="distanceInfo" style="border-radius:10px; overflow:hidden; margin-bottom:14px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <button id="confirmBtn" onclick="confirmCheckIn()" class="hidden"
+                            style="flex:1; background:#16a34a; color:white; padding:12px; border-radius:10px;
+                                   border:none; cursor:pointer; font-weight:700; font-family:inherit; font-size:1rem;">
+                        ✅ تأكيد الحضور
+                    </button>
+                    <button onclick="closeModal()"
+                            style="flex:1; background:#e5e7eb; color:#374151; padding:12px; border-radius:10px;
+                                   border:none; cursor:pointer; font-weight:600; font-family:inherit; font-size:1rem;">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const UNIVERSITY_LAT = 32.028255;
+    const UNIVERSITY_LNG = 20.068791;
+    const MAX_DISTANCE   = 100;
+    let userLat = null, userLng = null;
+
+    function startCheckIn() {
+        document.getElementById('locationModal').classList.remove('hidden');
+        document.getElementById('locationStatus').classList.remove('hidden');
+        document.getElementById('locationStatus').innerHTML = '<div style="font-size:2.5rem;margin-bottom:10px;">🔄</div><p style="color:#6b7280;">جاري تحديد موقعك...</p>';
+        document.getElementById('locationInfo').classList.add('hidden');
+        document.getElementById('map').classList.add('hidden');
+
+        if (!navigator.geolocation) {
+            showLocationError('متصفحك لا يدعم تحديد الموقع');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError,
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    }
+
+    function onLocationSuccess(pos) {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy;
+        const distance = calcDistance(userLat, userLng, UNIVERSITY_LAT, UNIVERSITY_LNG);
+
+        document.getElementById('locationStatus').classList.add('hidden');
+        document.getElementById('locationInfo').classList.remove('hidden');
+
+        const mapEl = document.getElementById('map');
+        mapEl.classList.remove('hidden');
+        mapEl.innerHTML = `<iframe width="100%" height="100%" style="border:0;border-radius:10px;"
+            src="https://maps.google.com/maps?q=${userLat},${userLng}&z=18&output=embed" allowfullscreen></iframe>`;
+
+        const distEl = document.getElementById('distanceInfo');
+        const confBtn = document.getElementById('confirmBtn');
+
+        if (distance <= MAX_DISTANCE) {
+            distEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;padding:12px;border-radius:10px;text-align:center;">
+                <p style="color:#15803d;font-weight:700;font-size:1.05rem;margin:0;">✅ أنت داخل النطاق</p>
+                <p style="color:#16a34a;margin:4px 0 0;">المسافة: ${distance.toFixed(0)} متر | دقة GPS: ±${accuracy.toFixed(0)} متر</p>
+            </div>`;
+            confBtn.classList.remove('hidden');
+        } else {
+            distEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fca5a5;padding:12px;border-radius:10px;text-align:center;">
+                <p style="color:#dc2626;font-weight:700;font-size:1.05rem;margin:0;">❌ أنت خارج النطاق</p>
+                <p style="color:#ef4444;margin:4px 0 0;">المسافة: ${distance.toFixed(0)} متر | يجب أن تكون داخل ${MAX_DISTANCE} متر</p>
+                <p style="color:#9ca3af;font-size:0.75rem;margin:4px 0 0;">دقة GPS: ±${accuracy.toFixed(0)} متر</p>
+            </div>`;
+            confBtn.classList.add('hidden');
+        }
+    }
+
+    function onLocationError(err) {
+        const msgs = { 1: 'يجب السماح للموقع بالوصول لموقعك', 3: 'انتهت مهلة تحديد الموقع، حاول مرة أخرى' };
+        showLocationError(msgs[err.code] || 'تعذر تحديد موقعك');
+    }
+
+    function showLocationError(msg) {
+        document.getElementById('locationStatus').innerHTML = `<p style="color:#dc2626;font-size:1.5rem;">❌</p><p style="color:#dc2626;">${msg}</p>`;
+        document.getElementById('locationInfo').classList.remove('hidden');
+    }
+
+    function calcDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000, φ1 = lat1*Math.PI/180, φ2 = lat2*Math.PI/180;
+        const Δφ = (lat2-lat1)*Math.PI/180, Δλ = (lon2-lon1)*Math.PI/180;
+        const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function closeModal() { document.getElementById('locationModal').classList.add('hidden'); }
+
+    function confirmCheckIn() {
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ جاري التسجيل...';
+
+        fetch('/attendance/check-in', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { closeModal(); location.reload(); }
+            else { alert(data.message || 'حدث خطأ'); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; }
+        })
+        .catch(() => { alert('خطأ في الاتصال'); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; });
+    }
+    </script>
+    @endif
+
     <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <div class="flex justify-between items-center border-b pb-4 mb-6">
             <h1 class="text-3xl font-bold text-gray-800">{{ $emp->name }}</h1>
