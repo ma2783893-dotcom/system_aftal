@@ -48,7 +48,7 @@
             <h3 class="text-lg font-bold text-primary">السيرة الذاتية (CV)</h3>
         </div>
         <div class="p-6">
-            @if($employee->cv_file)
+            @if($employee->cv)
                 <div class="mb-6 p-4 bg-blue-50 text-blue-800 border border-blue-100 rounded-lg flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,7 +56,7 @@
                         </svg>
                         <span class="font-bold">تم رفع السيرة الذاتية مسبقاً</span>
                     </div>
-                    <a href="{{ asset('storage/' . $employee->cv_file) }}" target="_blank" class="text-primary hover:underline font-bold text-sm">عرض الملف</a>
+                    <a href="{{ route('resume.download', $employee->id) }}" class="text-primary hover:underline font-bold text-sm">تحميل الملف</a>
                 </div>
             @endif
 

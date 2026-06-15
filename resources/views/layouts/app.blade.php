@@ -220,7 +220,7 @@
                 </div>
                 <div style="text-align:center; font-size:0.8rem; color:#64748b;">
                     <div>نظام إدارة أعضاء هيئة التدريس</div>
-                    <div style="color:#3b82f6;">الإصدار 1.0.0</div>
+                    <div style="color:#3b82f6;">الإصدار 1.0.2</div>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">

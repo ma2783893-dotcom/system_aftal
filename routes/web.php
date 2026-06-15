@@ -142,6 +142,7 @@ Route::post('/add-supervisor', function (Request $request) {
             'target'     => $supervisor->name,
             'details'    => 'Permissions: ' . implode(', ', $request->permissions ?? ['none']),
             'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
 
@@ -218,6 +219,7 @@ Route::post('/add-employee', function (Request $request) {
             'target'     => $employee->name,
             'details'    => 'Added new employee with email: ' . $employee->email,
             'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
 
@@ -287,6 +289,7 @@ Route::post('/update-employee/{id}', function (Request $request, $id) {
             'target'     => $emp->name,
             'details'    => 'Updated employee data',
             'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
 
@@ -438,6 +441,7 @@ Route::post('/attendance/check-in', function (Request $request) {
             'target'     => User::find($empId)->name,
             'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($distance <= 50 ? 'Yes' : 'No'),
             'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
 
@@ -533,3 +537,70 @@ Route::get('/activity-log', function () {
     }
     return view('admin.activity-log', compact('logs', 'sessionSummary'));
 })->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| 6. المحفظة المالية (القسائم)
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/voucher/add', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'amount'      => 'required|numeric|min:0.01',
+        'status'      => 'in:locked,available',
+        'attachment'  => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+    ]);
+    $file = null;
+    if ($request->hasFile('attachment')) {
+        $dir = public_path('uploads/vouchers');
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
+        $file = time() . '_' . $request->attachment->getClientOriginalName();
+        $request->attachment->move($dir, $file);
+    }
+    \App\Models\EmployeeVoucher::create([
+        'employee_id' => $request->employee_id,
+        'amount'      => $request->amount,
+        'description' => $request->description,
+        'attachment'  => $file,
+        'status'      => $request->status ?? 'locked',
+        'created_by'  => Auth::id(),
+    ]);
+    return back()->with('success', 'تم إضافة القسيمة بنجاح');
+})->middleware('auth');
+
+Route::patch('/voucher/{id}/unlock', function ($id) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    \App\Models\EmployeeVoucher::findOrFail($id)->update([
+        'status'      => 'available',
+        'unlocked_at' => now(),
+    ]);
+    return back()->with('success', 'تم فتح القسيمة');
+})->middleware('auth');
+
+Route::get('/voucher/{id}/download', function ($id) {
+    $v = \App\Models\EmployeeVoucher::findOrFail($id);
+    if ((int) Auth::id() !== (int) $v->employee_id && Auth::user()->role !== 'admin') abort(403);
+    if ($v->status !== 'available' && Auth::user()->role !== 'admin') abort(403);
+    if (!$v->attachment) abort(404);
+    $path = public_path('uploads/vouchers/' . $v->attachment);
+    if (!file_exists($path)) abort(404);
+    return response()->download($path);
+})->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| 7. رفع السيرة الذاتية من قِبل الموظف
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/employee/upload-cv', function (Request $request) {
+    $request->validate(['cv' => 'required|mimes:pdf|max:5120']);
+    $dir = public_path('uploads/cv');
+    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    $fileName = time() . '_' . $request->cv->getClientOriginalName();
+    $request->cv->move($dir, $fileName);
+    Auth::user()->update(['cv' => $fileName]);
+    return back()->with('success', 'تم رفع السيرة الذاتية بنجاح');
+})->middleware('auth')->name('employee.upload-cv');

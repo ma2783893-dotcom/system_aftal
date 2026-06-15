@@ -81,15 +81,16 @@
                     <th class="p-3 text-start">{{ __('Action') }}</th>
                     <th class="p-3 text-start">{{ __('Target') }}</th>
                     <th class="p-3 text-start">{{ __('Details') }}</th>
-                    <th class="p-3 text-start">{{ __('Date') }}</th>
                     <th class="p-3 text-start">IP</th>
+                    <th class="p-3 text-start">الجهاز</th>
+                    <th class="p-3 text-start">{{ __('Date') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($logs as $log)
                 <tr class="border-t hover:bg-gray-50 text-sm">
                     <td class="p-3 text-gray-400">{{ $log->id }}</td>
-                    <td class="p-3 font-medium">{{ $log->user?->name ?? '—' }}</td>
+                    <td class="p-3 font-medium">{{ $log->user?->name ?? 'محذوف' }}</td>
                     <td class="p-3">
                         @php $r = $log->user?->role ?? '' @endphp
                         <span style="padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600;
@@ -101,25 +102,39 @@
                     <td class="p-3">
                         @php
                             $ac = $log->action ?? '';
-                            if (str_contains($ac, 'add'))    { $bg = '#dcfce7'; $fg = '#16a34a'; }
-                            elseif (str_contains($ac, 'edit'))   { $bg = '#fef9c3'; $fg = '#ca8a04'; }
-                            elseif (str_contains($ac, 'delete')) { $bg = '#fee2e2'; $fg = '#dc2626'; }
-                            else                              { $bg = '#f1f5f9'; $fg = '#475569'; }
+                            if (str_contains($ac, 'add'))         { $bg = '#dcfce7'; $fg = '#16a34a'; }
+                            elseif (str_contains($ac, 'edit'))    { $bg = '#fef9c3'; $fg = '#ca8a04'; }
+                            elseif (str_contains($ac, 'delete'))  { $bg = '#fee2e2'; $fg = '#dc2626'; }
+                            elseif (str_contains($ac, 'check'))   { $bg = '#dbeafe'; $fg = '#1d4ed8'; }
+                            else                                   { $bg = '#f1f5f9'; $fg = '#475569'; }
                         @endphp
                         <span style="background:{{ $bg }}; color:{{ $fg }}; padding:2px 10px; border-radius:12px; font-size:0.8rem; font-weight:600;">
                             {{ $ac }}
                         </span>
                     </td>
                     <td class="p-3">{{ $log->target ?? '—' }}</td>
-                    <td class="p-3 text-gray-500" style="max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <td class="p-3 text-gray-500" style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         {{ $log->details ?? '—' }}
                     </td>
-                    <td class="p-3 text-gray-500" style="white-space:nowrap;">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
-                    <td class="p-3 text-gray-400 text-xs">{{ $log->ip_address }}</td>
+                    <td class="p-3 text-gray-400 text-xs" style="white-space:nowrap;">{{ $log->ip_address ?? '—' }}</td>
+                    <td class="p-3 text-gray-400 text-xs" style="max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                        title="{{ $log->user_agent ?? '' }}">
+                        @php
+                            $ua = $log->user_agent ?? '';
+                            if (str_contains($ua, 'Mobile') || str_contains($ua, 'Android') || str_contains($ua, 'iPhone')) { echo '📱 '; }
+                            elseif ($ua) { echo '🖥️ '; }
+                            if (str_contains($ua, 'Chrome'))  { echo 'Chrome'; }
+                            elseif (str_contains($ua, 'Firefox')) { echo 'Firefox'; }
+                            elseif (str_contains($ua, 'Safari'))  { echo 'Safari'; }
+                            elseif ($ua) { echo substr($ua, 0, 20); }
+                            else { echo '—'; }
+                        @endphp
+                    </td>
+                    <td class="p-3 text-gray-500" style="white-space:nowrap;">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="p-8 text-center text-gray-400">{{ __('No activity recorded yet.') }}</td>
+                    <td colspan="9" class="p-8 text-center text-gray-400">{{ __('No activity recorded yet.') }}</td>
                 </tr>
                 @endforelse
             </tbody>

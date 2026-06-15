@@ -3,9 +3,11 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    @if(auth()->user()->role === 'admin' || auth()->user()->role === 'supervisor')
     <div class="mb-6">
         <a href="/" class="text-blue-500 hover:text-blue-700 underline font-medium">&larr; {{ __('Back to Dashboard') }}</a>
     </div>
+    @endif
 
     {{-- GPS Check-in Section --}}
     @if(auth()->id() === $emp->id || auth()->user()->isAdmin())
@@ -180,6 +182,129 @@
         .catch(err => { alert('خطأ في الاتصال:\n' + err.message); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; });
     }
     </script>
+    @endif
+
+    {{-- Voucher / Digital Wallet Section --}}
+    @if(auth()->user()->isAdmin() || auth()->id() === $emp->id)
+    @php $vouchers = \App\Models\EmployeeVoucher::where('employee_id', $emp->id)->latest()->get(); @endphp
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540;">💰 المحفظة المالية</h3>
+            @if(auth()->user()->isAdmin())
+            <button onclick="document.getElementById('addVoucherModal').classList.remove('hidden')"
+                    style="background:#16a34a; color:white; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:0.875rem; font-family:inherit;">
+                + إضافة قسيمة
+            </button>
+            @endif
+        </div>
+
+        @if($vouchers->isEmpty())
+            <p style="color:#9ca3af; font-size:0.875rem; text-align:center; padding:1rem 0;">لا توجد قسائم مالية بعد</p>
+        @else
+            @foreach($vouchers as $v)
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; border:1px solid {{ $v->status === 'available' ? '#86efac' : '#e5e7eb' }}; border-radius:10px; margin-bottom:8px; background:{{ $v->status === 'available' ? '#f0fdf4' : '#fafafa' }};">
+                <div>
+                    @if($v->status === 'available')
+                        <p style="font-weight:700; color:#15803d; font-size:1.1rem; margin:0;">{{ number_format($v->amount, 2) }} د.ل</p>
+                    @else
+                        <p style="font-weight:700; color:#9ca3af; margin:0;">قسيمة مغلقة</p>
+                    @endif
+                    @if($v->description)
+                        <p style="font-size:0.82rem; color:#6b7280; margin:3px 0 0;">{{ $v->description }}</p>
+                    @endif
+                    <p style="font-size:0.72rem; color:#9ca3af; margin:3px 0 0;">{{ $v->created_at->format('d/m/Y') }}</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;
+                                 background:{{ $v->status === 'available' ? '#dcfce7' : '#f3f4f6' }};
+                                 color:{{ $v->status === 'available' ? '#15803d' : '#6b7280' }};">
+                        {{ $v->status === 'available' ? '🔓 متاحة' : '🔒 مغلقة' }}
+                    </span>
+                    @if($v->status === 'available' && $v->attachment)
+                    <a href="/voucher/{{ $v->id }}/download"
+                       style="background:#3b82f6; color:white; padding:4px 12px; border-radius:6px; font-size:0.75rem; text-decoration:none; font-weight:600;">
+                        📄 تحميل
+                    </a>
+                    @endif
+                    @if(auth()->user()->isAdmin() && $v->status === 'locked')
+                    <form method="POST" action="/voucher/{{ $v->id }}/unlock" style="display:inline;">
+                        @csrf @method('PATCH')
+                        <button style="background:#3b82f6; color:white; padding:4px 12px; border-radius:6px; font-size:0.75rem; border:none; cursor:pointer; font-family:inherit;">
+                            فتح
+                        </button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        @endif
+    </div>
+
+    {{-- Add Voucher Modal (admin only) --}}
+    @if(auth()->user()->isAdmin())
+    <div id="addVoucherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:1rem;">💰 إضافة قسيمة مالية</h3>
+            @if(session('success'))
+                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
+                    ✅ {{ session('success') }}
+                </div>
+            @endif
+            <form method="POST" action="/voucher/add" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="employee_id" value="{{ $emp->id }}">
+                <input type="number" name="amount" placeholder="المبلغ (د.ل)" step="0.01" min="0.01" required
+                       style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; font-family:inherit; box-sizing:border-box;">
+                <input type="text" name="description" placeholder="الوصف (اختياري)"
+                       style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; font-family:inherit; box-sizing:border-box;">
+                <input type="file" name="attachment" accept=".pdf,image/*"
+                       style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; box-sizing:border-box;">
+                <select name="status" style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:16px; font-family:inherit; box-sizing:border-box; background:white;">
+                    <option value="locked">🔒 مغلقة (يفتحها الأدمن لاحقاً)</option>
+                    <option value="available">🔓 متاحة فوراً</option>
+                </select>
+                <div style="display:flex; gap:8px;">
+                    <button type="submit" style="flex:1; background:#16a34a; color:white; padding:10px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
+                        حفظ
+                    </button>
+                    <button type="button" onclick="document.getElementById('addVoucherModal').classList.add('hidden')"
+                            style="flex:1; background:#e5e7eb; color:#374151; padding:10px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-family:inherit;">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+    @endif
+
+    {{-- Employee CV Upload (employee viewing own profile) --}}
+    @if(auth()->user()->role === 'employee' && auth()->id() === $emp->id)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;">📄 سيرتي الذاتية</h3>
+        @if($emp->cv)
+            <p style="color:#15803d; margin-bottom:8px; font-size:0.875rem;">✅ تم رفع السيرة الذاتية</p>
+            <a href="{{ route('resume.download', $emp->id) }}"
+               style="display:inline-block; background:#3b82f6; color:white; padding:6px 14px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600; margin-bottom:12px;">
+                📥 تحميل السيرة الذاتية
+            </a>
+        @else
+            <p style="color:#9ca3af; font-size:0.875rem; margin-bottom:12px;">لم يتم رفع سيرة ذاتية بعد</p>
+        @endif
+        @if(session('cv_success'))
+            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
+                ✅ {{ session('cv_success') }}
+            </div>
+        @endif
+        <form method="POST" action="/employee/upload-cv" enctype="multipart/form-data">
+            @csrf
+            <input type="file" name="cv" accept=".pdf" required
+                   style="width:100%; border:1px solid #d1d5db; padding:8px; border-radius:8px; margin-bottom:10px; box-sizing:border-box; font-size:0.875rem;">
+            <button type="submit" style="background:#2563eb; color:white; padding:8px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
+                📤 رفع السيرة الذاتية
+            </button>
+        </form>
+    </div>
     @endif
 
     <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
