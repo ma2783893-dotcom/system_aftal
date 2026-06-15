@@ -167,12 +167,17 @@
             },
             body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok && r.status !== 200) {
+                return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + t.substring(0, 200)); });
+            }
+            return r.json();
+        })
         .then(data => {
             if (data.success) { closeModal(); location.reload(); }
-            else { alert(data.message || 'حدث خطأ'); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; }
+            else { alert('❌ ' + (data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; }
         })
-        .catch(() => { alert('خطأ في الاتصال'); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; });
+        .catch(err => { alert('خطأ في الاتصال:\n' + err.message); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; });
     }
     </script>
     @endif

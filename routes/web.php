@@ -394,7 +394,7 @@ Route::post('/attendance/check-in', function (Request $request) {
     ]);
 
     $empId = (int) $request->employee_id;
-    if (Auth::id() !== $empId && Auth::user()->role !== 'admin') {
+    if ((int) Auth::id() !== $empId && Auth::user()->role !== 'admin') {
         return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
     }
 
@@ -413,25 +413,30 @@ Route::post('/attendance/check-in', function (Request $request) {
     $a  = sin($Δφ/2)**2 + cos($φ1)*cos($φ2)*sin($Δλ/2)**2;
     $distance = $R * 2 * atan2(sqrt($a), sqrt(1-$a));
 
-    Attendance::create([
-        'employee_id'       => $empId,
-        'date'              => today(),
-        'hours_worked'      => 0,
-        'status'            => 'present',
-        'check_in_time'     => now()->toTimeString(),
-        'latitude'          => $request->latitude,
-        'longitude'         => $request->longitude,
-        'distance_meters'   => round($distance, 2),
-        'location_verified' => $distance <= 50,
-        'ip_address'        => $request->ip(),
-    ]);
+    try {
+        Attendance::create([
+            'employee_id'       => $empId,
+            'date'              => today(),
+            'hours_worked'      => 0,
+            'status'            => 'present',
+            'check_in_time'     => now()->toTimeString(),
+            'latitude'          => $request->latitude,
+            'longitude'         => $request->longitude,
+            'distance_meters'   => round($distance, 2),
+            'location_verified' => $distance <= 50,
+            'ip_address'        => $request->ip(),
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Attendance::create failed: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'خطأ في قاعدة البيانات: ' . $e->getMessage()], 500);
+    }
 
     try {
         ActivityLog::create([
             'user_id'    => Auth::id(),
             'action'     => 'check_in',
             'target'     => User::find($empId)->name,
-            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($distance <= 100 ? 'Yes' : 'No'),
+            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($distance <= 50 ? 'Yes' : 'No'),
             'ip_address' => $request->ip(),
         ]);
     } catch (\Exception $e) {}
@@ -440,7 +445,7 @@ Route::post('/attendance/check-in', function (Request $request) {
         'success'  => true,
         'message'  => 'تم تسجيل الحضور بنجاح',
         'distance' => round($distance),
-        'verified' => $distance <= 100,
+        'verified' => $distance <= 50,
         'time'     => now()->format('H:i'),
     ]);
 })->middleware('auth');
