@@ -639,38 +639,62 @@ Route::get('/activity-log', function () {
 */
 
 Route::post('/voucher/add', function (Request $request) {
-    if (Auth::user()->role !== 'admin') abort(403);
-    $request->validate([
+    if (!Auth::user()->isAdmin()) abort(403);
+
+    $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
         'employee_id' => 'required|exists:users,id',
-        'amount'      => 'required|numeric|min:0.01',
-        'status'      => 'in:locked,available',
-        'attachment'  => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+        'amount'      => 'required|numeric|min:0.01|max:99999999',
+        'description' => 'nullable|string|max:255',
+        'status'      => 'nullable|in:locked,available',
+        'attachment'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,heic,heif|max:10240',
+    ], [
+        'amount.required'  => 'أدخل مبلغ القسيمة',
+        'amount.numeric'   => 'المبلغ يجب أن يكون رقماً',
+        'amount.min'       => 'المبلغ يجب أن يكون أكبر من صفر',
+        'description.max'  => 'الوصف طويل جداً (255 حرفاً كحد أقصى)',
+        'attachment.mimes' => 'المرفق يجب أن يكون PDF أو صورة (jpg, png, webp, heic)',
+        'attachment.max'   => 'حجم المرفق يجب ألا يتجاوز 10 ميجابايت',
+        'attachment.uploaded' => 'فشل رفع المرفق، قد يكون حجمه كبيراً جداً',
     ]);
-    $file = null;
-    if ($request->hasFile('attachment')) {
-        $dir = public_path('uploads/vouchers');
-        if (!is_dir($dir)) mkdir($dir, 0775, true);
-        $file = time() . '_' . $request->attachment->getClientOriginalName();
-        $request->attachment->move($dir, $file);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator, 'voucher')->withInput()->with('voucher_error', true);
     }
-    \App\Models\EmployeeVoucher::create([
-        'employee_id' => $request->employee_id,
-        'amount'      => $request->amount,
-        'description' => $request->description,
-        'attachment'  => $file,
-        'status'      => $request->status ?? 'locked',
-        'created_by'  => Auth::id(),
-    ]);
-    return back()->with('success', 'تم إضافة القسيمة بنجاح');
+
+    try {
+        $file = null;
+        if ($request->hasFile('attachment')) {
+            $dir = public_path('uploads/vouchers');
+            if (!is_dir($dir)) mkdir($dir, 0775, true);
+            $ext  = strtolower($request->attachment->getClientOriginalExtension() ?: 'bin');
+            $file = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $ext;
+            $request->attachment->move($dir, $file);
+        }
+
+        \App\Models\EmployeeVoucher::create([
+            'employee_id' => $request->employee_id,
+            'amount'      => $request->amount,
+            'description' => $request->description,
+            'attachment'  => $file,
+            'status'      => $request->status ?: 'locked',
+            'created_by'  => Auth::id(),
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Voucher create failed: ' . $e->getMessage());
+        return back()->withErrors(['attachment' => 'تعذر حفظ القسيمة، حاول مرة أخرى'], 'voucher')
+                     ->withInput()->with('voucher_error', true);
+    }
+
+    return back()->with('voucher_success', 'تم إضافة القسيمة بنجاح ✅');
 })->middleware('auth');
 
 Route::patch('/voucher/{id}/unlock', function ($id) {
-    if (Auth::user()->role !== 'admin') abort(403);
+    if (!Auth::user()->isAdmin()) abort(403);
     \App\Models\EmployeeVoucher::findOrFail($id)->update([
         'status'      => 'available',
         'unlocked_at' => now(),
     ]);
-    return back()->with('success', 'تم فتح القسيمة');
+    return back()->with('voucher_success', 'تم فتح القسيمة ✅');
 })->middleware('auth');
 
 Route::get('/voucher/{id}/download', function ($id) {

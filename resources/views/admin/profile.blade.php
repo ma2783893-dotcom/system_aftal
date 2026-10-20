@@ -271,6 +271,12 @@
             @endif
         </div>
 
+        @if(session('voucher_success'))
+            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
+                {{ session('voucher_success') }}
+            </div>
+        @endif
+
         @if($vouchers->isEmpty())
             <p style="color:#9ca3af; font-size:0.875rem; text-align:center; padding:1rem 0;">لا توجد قسائم مالية بعد</p>
         @else
@@ -318,19 +324,19 @@
     <div id="addVoucherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
             <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:1rem;">💰 إضافة قسيمة مالية</h3>
-            @if(session('success'))
-                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
-                    ✅ {{ session('success') }}
+            @if($errors->voucher->any())
+                <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px; margin-bottom:12px; color:#b91c1c; font-size:0.875rem;">
+                    @foreach($errors->voucher->all() as $err)<div>❌ {{ $err }}</div>@endforeach
                 </div>
             @endif
             <form method="POST" action="/voucher/add" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="employee_id" value="{{ $emp->id }}">
-                <input type="number" name="amount" placeholder="المبلغ (د.ل)" step="0.01" min="0.01" required
+                <input type="number" name="amount" value="{{ old('amount') }}" placeholder="المبلغ (د.ل)" step="0.01" min="0.01" required
                        style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; font-family:inherit; box-sizing:border-box;">
-                <input type="text" name="description" placeholder="الوصف (اختياري)"
+                <input type="text" name="description" value="{{ old('description') }}" maxlength="255" placeholder="الوصف (اختياري)"
                        style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; font-family:inherit; box-sizing:border-box;">
-                <input type="file" name="attachment" accept=".pdf,image/*"
+                <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,image/*"
                        style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; box-sizing:border-box;">
                 <select name="status" style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:16px; font-family:inherit; box-sizing:border-box; background:white;">
                     <option value="locked">🔒 مغلقة (يفتحها الأدمن لاحقاً)</option>
@@ -348,6 +354,9 @@
             </form>
         </div>
     </div>
+    @if(session('voucher_error'))
+    <script>document.getElementById('addVoucherModal').classList.remove('hidden');</script>
+    @endif
     @endif
     @endif
 
