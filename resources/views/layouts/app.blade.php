@@ -180,6 +180,8 @@
                     </div>
                     @auth
                         <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
+                        <a href="/change-password" title="تغيير كلمة المرور"
+                           class="text-sm bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md transition">🔑</a>
                     @endauth
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf

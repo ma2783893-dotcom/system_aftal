@@ -20,6 +20,12 @@ class Attendance extends Model
         'distance_meters',
         'location_verified',
         'ip_address',
+        'check_out_time',
+        'check_out_latitude',
+        'check_out_longitude',
+        'check_out_distance_meters',
+        'check_out_verified',
+        'device_id',
     ];
 
     public function employee()

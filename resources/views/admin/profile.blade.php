@@ -9,39 +9,89 @@
     </div>
     @endif
 
-    {{-- GPS Check-in Section --}}
+    {{-- GPS Check-in / Check-out Section --}}
     @if(auth()->id() === $emp->id || auth()->user()->isAdmin())
     @php
         $todayAttendance = \App\Models\Attendance::where('employee_id', $emp->id)
-            ->where('date', today())->first();
+            ->whereDate('date', now()->toDateString())->first();
+        $arDays = ['Sunday'=>'الأحد','Monday'=>'الاثنين','Tuesday'=>'الثلاثاء','Wednesday'=>'الأربعاء',
+                   'Thursday'=>'الخميس','Friday'=>'الجمعة','Saturday'=>'السبت'];
+        $todayLabel = ($arDays[now()->format('l')] ?? now()->format('l')) . '، ' . now()->format('d/m/Y');
     @endphp
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+        <p style="text-align:center; color:#0a2540; font-weight:700; margin:0 0 12px;">📅 {{ $todayLabel }}</p>
+
         @if($todayAttendance)
-            <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px;">
-                <span style="font-size:1.8rem;">✅</span>
+            <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px; margin-bottom:10px;">
+                <span style="font-size:1.6rem;">✅</span>
                 <div>
-                    <p style="font-weight:700; color:#15803d; margin:0;">تم تسجيل الحضور اليوم</p>
+                    <p style="font-weight:700; color:#15803d; margin:0;">الحضور: {{ \Carbon\Carbon::parse($todayAttendance->date)->format('d/m/Y') }} — الساعة {{ substr($todayAttendance->check_in_time ?? '', 0, 5) }}</p>
                     <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 0;">
-                        الوقت: <strong>{{ substr($todayAttendance->check_in_time ?? '', 0, 5) }}</strong>
                         @if($todayAttendance->distance_meters !== null)
-                            | المسافة: <strong>{{ round($todayAttendance->distance_meters) }} متر</strong>
+                            المسافة: <strong>{{ round($todayAttendance->distance_meters) }} متر</strong> |
                         @endif
-                        | {{ $todayAttendance->location_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
+                        {{ $todayAttendance->location_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
                     </p>
                 </div>
             </div>
+
+            @if($todayAttendance->check_out_time)
+                <div style="display:flex; align-items:center; gap:12px; background:#eff6ff; border:1px solid #93c5fd; border-radius:10px; padding:14px;">
+                    <span style="font-size:1.6rem;">🚪</span>
+                    <div>
+                        <p style="font-weight:700; color:#1d4ed8; margin:0;">الانصراف: الساعة {{ substr($todayAttendance->check_out_time, 0, 5) }}</p>
+                        <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 0;">
+                            مدة الدوام: <strong>{{ number_format($todayAttendance->hours_worked, 2) }} ساعة</strong>
+                            @if($todayAttendance->check_out_distance_meters !== null)
+                                | المسافة: <strong>{{ round($todayAttendance->check_out_distance_meters) }} متر</strong>
+                            @endif
+                            | {{ $todayAttendance->check_out_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
+                        </p>
+                    </div>
+                </div>
+            @else
+                <div style="text-align:center; margin-top:8px;">
+                    <button id="checkOutBtn" onclick="startAttendance('out')"
+                            style="background:#dc2626; color:white; font-weight:700; padding:14px 36px;
+                                   border-radius:14px; border:none; cursor:pointer; font-size:1.1rem;
+                                   font-family:inherit; box-shadow:0 4px 12px rgba(220,38,38,0.3);">
+                        🚪 تسجيل الخروج من الجامعة
+                    </button>
+                </div>
+            @endif
         @else
             <div style="text-align:center;">
-                <button id="checkInBtn" onclick="startCheckIn()"
+                <button id="checkInBtn" onclick="startAttendance('in')"
                         style="background:#16a34a; color:white; font-weight:700; padding:14px 36px;
                                border-radius:14px; border:none; cursor:pointer; font-size:1.1rem;
                                font-family:inherit; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
                     📍 تسجيل الحضور اليوم
                 </button>
-                <p style="color:#94a3b8; font-size:0.82rem; margin-top:8px;">{{ now()->format('l، d/m/Y') }}</p>
-                <p style="color:#9ca3af; font-size:0.75rem; margin-top:6px; text-align:center;">
-                    📱 متاح من الهاتف المحمول فقط
-                </p>
+            </div>
+        @endif
+        <p style="color:#9ca3af; font-size:0.75rem; margin-top:10px; text-align:center;">
+            📱 متاح من الهاتف المسجّل لحسابك فقط
+        </p>
+
+        @if(auth()->user()->role === 'admin' && $emp->role === 'employee')
+            <div style="border-top:1px dashed #e5e7eb; margin-top:14px; padding-top:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span style="font-size:0.82rem; color:#475569;">
+                    📱 الهاتف المسجّل:
+                    @if($emp->device_id)
+                        <strong>مربوط</strong> منذ {{ optional($emp->device_bound_at)->format('d/m/Y H:i') }}
+                    @else
+                        <strong>غير مربوط</strong> (سيُربط عند أول تسجيل)
+                    @endif
+                </span>
+                @if($emp->device_id)
+                <form method="POST" action="/admin/employees/{{ $emp->id }}/reset-device" style="margin:0;"
+                      onsubmit="return confirm('إعادة تعيين الهاتف؟ سيُربط الحساب بأول هاتف يسجّل منه الموظف.')">
+                    @csrf
+                    <button style="background:#f59e0b; color:white; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-size:0.8rem; font-weight:700; font-family:inherit;">
+                        🔄 إعادة تعيين الهاتف
+                    </button>
+                </form>
+                @endif
             </div>
         @endif
     </div>
@@ -49,7 +99,7 @@
     {{-- Location Modal --}}
     <div id="locationModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-            <h3 style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:16px;">📍 تحديد الموقع</h3>
+            <h3 id="modalTitle" style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:16px;">📍 تحديد الموقع</h3>
 
             <div id="locationStatus" style="text-align:center; padding:20px;">
                 <div style="font-size:2.5rem; margin-bottom:10px;">🔄</div>
@@ -61,10 +111,10 @@
             <div id="locationInfo" class="hidden">
                 <div id="distanceInfo" style="border-radius:10px; overflow:hidden; margin-bottom:14px;"></div>
                 <div style="display:flex; gap:10px;">
-                    <button id="confirmBtn" onclick="confirmCheckIn()" class="hidden"
+                    <button id="confirmBtn" onclick="confirmAttendance()" class="hidden"
                             style="flex:1; background:#16a34a; color:white; padding:12px; border-radius:10px;
                                    border:none; cursor:pointer; font-weight:700; font-family:inherit; font-size:1rem;">
-                        ✅ تأكيد الحضور
+                        ✅ تأكيد
                     </button>
                     <button onclick="closeModal()"
                             style="flex:1; background:#e5e7eb; color:#374151; padding:12px; border-radius:10px;
@@ -77,29 +127,46 @@
     </div>
 
     <script>
-    const UNIVERSITY_LAT = 32.028255;
-    const UNIVERSITY_LNG = 20.068791;
-    const MAX_DISTANCE   = 50;
-    let userLat = null, userLng = null;
+    const UNIVERSITY_LAT = {{ \App\Support\AttendanceGuard::UNI_LAT }};
+    const UNIVERSITY_LNG = {{ \App\Support\AttendanceGuard::UNI_LNG }};
+    const MAX_DISTANCE   = {{ \App\Support\AttendanceGuard::MAX_DISTANCE }};
+    let userLat = null, userLng = null, attMode = 'in';
 
-    function startCheckIn() {
-        const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i
-                         .test(navigator.userAgent);
+    // Persistent per-phone identifier (localStorage + 10-year cookie as backup)
+    function getDeviceId() {
+        const KEY = 'aftal_device_id';
+        let id = null;
+        try { id = localStorage.getItem(KEY); } catch (e) {}
+        if (!id) {
+            const m = document.cookie.match(/(?:^|; )aftal_device_id=([^;]+)/);
+            if (m) id = decodeURIComponent(m[1]);
+        }
+        if (!id) {
+            id = (crypto.randomUUID ? crypto.randomUUID()
+                 : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                       const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                   }));
+        }
+        try { localStorage.setItem(KEY, id); } catch (e) {}
+        document.cookie = 'aftal_device_id=' + encodeURIComponent(id) + '; max-age=315360000; path=/; SameSite=Lax; Secure';
+        return id;
+    }
+
+    function startAttendance(mode) {
+        attMode = mode;
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent);
         if (!isMobile) {
-            alert('⚠️ تسجيل الحضور متاح من الهاتف المحمول فقط.\nيرجى فتح الرابط من هاتفك.');
+            alert('⚠️ التسجيل متاح من الهاتف المحمول فقط.\nيرجى فتح الرابط من هاتفك.');
             return;
         }
-
+        document.getElementById('modalTitle').innerText = mode === 'in' ? '📍 تسجيل الحضور' : '🚪 تسجيل الخروج من الجامعة';
         document.getElementById('locationModal').classList.remove('hidden');
         document.getElementById('locationStatus').classList.remove('hidden');
         document.getElementById('locationStatus').innerHTML = '<div style="font-size:2.5rem;margin-bottom:10px;">🔄</div><p style="color:#6b7280;">جاري تحديد موقعك...</p>';
         document.getElementById('locationInfo').classList.add('hidden');
         document.getElementById('map').classList.add('hidden');
 
-        if (!navigator.geolocation) {
-            showLocationError('متصفحك لا يدعم تحديد الموقع');
-            return;
-        }
+        if (!navigator.geolocation) { showLocationError('متصفحك لا يدعم تحديد الموقع'); return; }
         navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError,
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     }
@@ -118,8 +185,10 @@
         mapEl.innerHTML = `<iframe width="100%" height="100%" style="border:0;border-radius:10px;"
             src="https://maps.google.com/maps?q=${userLat},${userLng}&z=18&output=embed" allowfullscreen></iframe>`;
 
-        const distEl = document.getElementById('distanceInfo');
+        const distEl  = document.getElementById('distanceInfo');
         const confBtn = document.getElementById('confirmBtn');
+        confBtn.innerHTML = attMode === 'in' ? '✅ تأكيد الحضور' : '✅ تأكيد الانصراف';
+        confBtn.style.background = attMode === 'in' ? '#16a34a' : '#dc2626';
 
         if (distance <= MAX_DISTANCE) {
             distEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;padding:12px;border-radius:10px;text-align:center;">
@@ -156,31 +225,35 @@
 
     function closeModal() { document.getElementById('locationModal').classList.add('hidden'); }
 
-    function confirmCheckIn() {
+    function confirmAttendance() {
         const btn = document.getElementById('confirmBtn');
+        const label = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '⏳ جاري التسجيل...';
 
-        fetch('/attendance/check-in', {
+        fetch(attMode === 'in' ? '/attendance/check-in' : '/attendance/check-out', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
-            body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng })
+            body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng, device_id: getDeviceId() })
         })
-        .then(r => {
-            if (!r.ok && r.status !== 200) {
-                return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + t.substring(0, 200)); });
-            }
-            return r.json();
-        })
+        .then(r => r.json().catch(() => ({ success: false, message: 'HTTP ' + r.status })))
         .then(data => {
-            if (data.success) { closeModal(); location.reload(); }
-            else { alert('❌ ' + (data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; }
+            if (data.success) {
+                alert('✅ ' + data.message + '\n📅 ' + data.date + '  ⏰ ' + data.time + (data.hours !== undefined ? '\n⏱️ مدة الدوام: ' + data.hours + ' ساعة' : ''));
+                closeModal(); location.reload();
+            } else {
+                alert('❌ ' + (data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = label;
+            }
         })
-        .catch(err => { alert('خطأ في الاتصال:\n' + err.message); btn.disabled = false; btn.innerHTML = '✅ تأكيد الحضور'; });
+        .catch(err => { alert('خطأ في الاتصال:\n' + err.message); btn.disabled = false; btn.innerHTML = label; });
     }
+
+    // Create the device id as soon as the page opens on the phone
+    try { if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) getDeviceId(); } catch (e) {}
     </script>
     @endif
 

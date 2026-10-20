@@ -68,11 +68,11 @@
                      style="cursor:pointer; font-size:0.68rem; margin-top:3px; padding:2px 4px; border-radius:4px;
                             background:{{ $att->location_verified ? '#bbf7d0' : '#fed7aa' }};
                             color:{{ $att->location_verified ? '#15803d' : '#c2410c' }};"
-                     title="{{ $att->employee->name ?? '' }} — {{ $att->check_in_time }}">
+                     title="{{ $att->employee->name ?? '' }} — حضور {{ $att->check_in_time }}{{ $att->check_out_time ? ' | انصراف ' . $att->check_out_time : '' }}">
                     {{ $att->location_verified ? '📍' : '⚠️' }}
                     {{ Str::limit($att->employee->name ?? '—', 10) }}
                     @if($att->check_in_time)
-                        <span style="color:#6b7280;">({{ substr($att->check_in_time,0,5) }})</span>
+                        <span style="color:#6b7280;">({{ substr($att->check_in_time,0,5) }}@if($att->check_out_time) ← {{ substr($att->check_out_time,0,5) }}@endif)</span>
                     @endif
                 </div>
                 @endforeach
@@ -129,7 +129,11 @@ function showAttendanceDetail(id) {
 
             document.getElementById('detailContent').innerHTML = `
                 <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:12px;">${data.name}</h3>
-                <p style="color:#6b7280; margin-bottom:6px;">⏰ وقت الحضور: <strong>${data.time || '—'}</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">📅 التاريخ: <strong>${data.date || '—'}</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">⏰ وقت الحضور: <strong>${data.time ? data.time.substring(0,5) : '—'}</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">🚪 وقت الانصراف: <strong>${data.check_out_time ? data.check_out_time.substring(0,5) : 'لم يسجّل بعد'}</strong>
+                    ${data.check_out_time ? (data.check_out_verified ? ' ✅' : ' ⚠️ خارج النطاق') : ''}</p>
+                ${data.check_out_time ? `<p style="color:#6b7280; margin-bottom:6px;">⏱️ مدة الدوام: <strong>${data.hours} ساعة</strong></p>` : ''}
                 <p style="color:#6b7280; margin-bottom:6px;">📏 المسافة من الجامعة: <strong>${data.distance} متر</strong></p>
                 <div style="margin:10px 0;">
                     ${data.verified

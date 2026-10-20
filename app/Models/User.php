@@ -27,6 +27,9 @@ class User extends Authenticatable
         'cv',
         'profile_photo',
         'permissions',
+        'device_id',
+        'device_bound_at',
+        'must_change_password',
     ];
 
     /**
@@ -37,6 +40,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'device_id',
     ];
 
     /**
@@ -49,6 +53,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'device_bound_at' => 'datetime',
+            'must_change_password' => 'boolean',
         ];
     }
 

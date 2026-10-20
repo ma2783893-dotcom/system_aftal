@@ -60,6 +60,45 @@ Route::post('/logout', function (Request $request) {
     return redirect('/login');
 })->name('logout');
 
+// تغيير كلمة المرور (لكل المستخدمين)
+Route::get('/change-password', function () {
+    return view('auth.change-password');
+})->middleware('auth');
+
+Route::post('/change-password', function (Request $request) {
+    $request->validate([
+        'current_password' => 'required|current_password',
+        'password'         => ['required', 'confirmed', 'different:current_password',
+                               \Illuminate\Validation\Rules\Password::min(8)->letters()->numbers()],
+    ], [
+        'current_password.current_password' => 'كلمة المرور الحالية غير صحيحة',
+        'password.confirmed'                 => 'تأكيد كلمة المرور غير مطابق',
+        'password.different'                 => 'كلمة المرور الجديدة يجب أن تختلف عن الحالية',
+    ]);
+
+    $user = Auth::user();
+    $user->forceFill([
+        'password'             => Hash::make($request->password),
+        'must_change_password' => false,
+    ])->save();
+
+    $request->session()->regenerate();
+
+    try {
+        ActivityLog::create([
+            'user_id'    => $user->id,
+            'action'     => 'changed_password',
+            'target'     => $user->name,
+            'details'    => 'Password changed by user',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+
+    return redirect($user->role === 'employee' ? '/profile/' . $user->id : '/')
+        ->with('success', 'تم تغيير كلمة المرور بنجاح');
+})->middleware('auth');
+
 /*
 |--------------------------------------------------------------------------
 | 3. لوحة التحكم وإدارة الموظفين
@@ -197,6 +236,7 @@ Route::post('/add-employee', function (Request $request) {
             'profile_photo' => $photoFileName,
             'password'      => Hash::make($request->password),
         ]);
+        $employee->forceFill(['must_change_password' => true])->save();
     } catch (\Exception $e) {
         \Log::error('Employee create failed: ' . $e->getMessage());
         return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()])->withInput();
@@ -302,80 +342,35 @@ Route::post('/update-employee/{id}', function (Request $request, $id) {
 |--------------------------------------------------------------------------
 */
 Route::get('/run-migrate', function () {
-    try {
-        // 1. تشغيل التهجير وبناء الجداول في ريلواي
-        \Artisan::call('migrate', ['--force' => true]);
-        
-        // 2. إنشاء حساب الآدمن الخاص بالجامعة تلقائياً إذا كان الجدول فارغاً
-        $adminEmail = 'admin@aftal.edu.ly';
-        $adminExists = \App\Models\User::where('email', $adminEmail)->exists();
-        
-        if (!$adminExists) {
-            \App\Models\User::create([
-                'name' => 'إدارة جامعة الأفضل الدولية',
-                'email' => $adminEmail,
-                'specialization' => 'System Admin',
-                'role' => 'admin',
-                'password' => \Illuminate\Support\Facades\Hash::make('Aftal@2026') // كلمة المرور الافتراضية
-            ]);
-            $adminMessage = '<div style="background:#e8f8f5; border:1px solid #a3e4d7; padding:15px; border-radius:5px; margin-top:15px;">
-                                <h3 style="color:#117a65; margin-top:0;">🔐 تم إنشاء حساب الآدمن الأساسي بنجاح!</h3>
-                                <p style="margin:5px 0;"><b>البريد الإلكتروني:</b> <code>' . $adminEmail . '</code></p>
-                                <p style="margin:5px 0;"><b>كلمة المرور المؤقتة:</b> <code>Aftal@2026</code></p>
-                             </div>';
-        } else {
-            $adminMessage = '<p style="color:#2980b9;">ℹ️ حساب الآدمن موجود مسبقاً في قاعدة البيانات وجاهز للاستخدام.</p>';
-        }
-
-        return '<div style="text-align:center; margin-top:50px; font-family:sans-serif; direction:rtl; max-width:500px; margin-left:auto; margin-right:auto; padding:20px; border:1px solid #d6dbdf; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                    <h1 style="color:#2ecc71;">منظومة الأفضل جاهزة للعمل! 🎉</h1>
-                    <p style="color:#7f8c8d;">تمت مزامنة قاعدة البيانات بنجاح تام.</p>
-                    ' . $adminMessage . '
-                    <br>
-                    <a href="' . url('/login') . '" style="display:inline-block; padding:12px 25px; background:#3498db; color:#fff; text-decoration:none; border-radius:5px; font-weight:bold; margin-top:10px;">الانتقال إلى واجهة الدخول الرسمية 🚀</a>
-                </div>';
-
-    } catch (\Exception $e) {
-        return '<div style="padding:20px; font-family:monospace; background:#fadbd8; color:#78281f; border:1px solid #f5b7b1; direction:ltr; text-align:left;">
-                    <h3>حدث خطأ أثناء الـ Migrate أو إنشاء الآدمن:</h3>
-                    <p>' . nl2br(e($e->getMessage())) . '</p>
-                </div>';
-                Route::get('/run-migrate', function (Request $request) {
-    try {
-        // تنظيف الكاش بالكامل لضمان قراءة التنسيقات والمتغيرات الجديدة
-        \Artisan::call('config:clear');
-        \Artisan::call('cache:clear');
-        \Artisan::call('view:clear');
-        \Artisan::call('route:clear');
-        
-        if ($request->query('fresh') === 'true') {
-            \Artisan::call('migrate:fresh', ['--force' => true]);
-        } else {
-            \Artisan::call('migrate', ['--force' => true]);
-        }
-        
-        // إنشاء حساب الآدمن الافتراضي لجامعة الأفضل
-        $adminEmail = 'admin@aftal.edu.ly';
-        if (!\App\Models\User::where('email', $adminEmail)->exists()) {
-            \App\Models\User::create([
-                'name' => 'إدارة جامعة الأفضل الدولية',
-                'email' => $adminEmail,
-                'specialization' => 'System Admin',
-                'role' => 'admin',
-                'password' => \Illuminate\Support\Facades\Hash::make('Aftal@2026')
-            ]);
-        }
-
-        // تحويل مباشر لصفحة الدخول بعد النجاح بدلاً من العرض النصي لضمان رؤية الواجهة فوراً
-        return redirect()->route('login')->with('success', 'تم تهيئة النظام وقاعدة البيانات بنجاح!');
-
-    } catch (\Exception $e) {
-        return '<div style="padding:20px; font-family:monospace; background:#fadbd8; color:#78281f; border:1px solid #f5b7b1; direction:ltr; text-align:left;">
-                    <h3>Error during sync:</h3>
-                    <p>' . nl2br(e($e->getMessage())) . '</p>
-                </div>';
+    // مسموح فقط: قبل وجود أي آدمن (أول تشغيل)، أو للآدمن المسجّل دخوله
+    $noAdminYet = false;
+    try { $noAdminYet = !User::where('role', 'admin')->exists(); } catch (\Exception $e) { $noAdminYet = true; }
+    if (!$noAdminYet && !(Auth::check() && Auth::user()->role === 'admin')) {
+        abort(403);
     }
-});
+
+    try {
+        \Artisan::call('migrate', ['--force' => true]);
+        $output = \Artisan::output();
+
+        $adminEmail = 'admin@aftal.edu.ly';
+        if (!User::where('email', $adminEmail)->exists()) {
+            User::create([
+                'name'           => 'إدارة جامعة الأفضل الدولية',
+                'email'          => $adminEmail,
+                'specialization' => 'System Admin',
+                'role'           => 'admin',
+                'password'       => Hash::make(env('ADMIN_INITIAL_PASSWORD', \Illuminate\Support\Str::random(16))),
+            ]);
+        }
+
+        return '<div style="font-family:sans-serif;direction:rtl;max-width:600px;margin:50px auto;padding:20px;border:1px solid #d6dbdf;border-radius:10px;">'
+             . '<h2 style="color:#16a34a;">✅ تم تحديث قاعدة البيانات</h2>'
+             . '<pre style="direction:ltr;text-align:left;background:#f8fafc;padding:10px;white-space:pre-wrap;">' . e($output) . '</pre>'
+             . '<a href="' . url('/') . '">العودة للوحة التحكم</a></div>';
+    } catch (\Exception $e) {
+        \Log::error('run-migrate failed: ' . $e->getMessage());
+        return response('<pre style="direction:ltr">Migration error: ' . e($e->getMessage()) . '</pre>', 500);
     }
 });
 
@@ -388,58 +383,63 @@ Route::get('/run-migrate', function () {
 // PDF Monthly Report
 Route::get('/reports/monthly', [ReportController::class, 'monthly'])->middleware('auth');
 
-// GPS Check-in
+// GPS Check-in (حضور)
 Route::post('/attendance/check-in', function (Request $request) {
     $request->validate([
         'employee_id' => 'required|exists:users,id',
-        'latitude'    => 'required|numeric',
-        'longitude'   => 'required|numeric',
+        'latitude'    => 'required|numeric|between:-90,90',
+        'longitude'   => 'required|numeric|between:-180,180',
+        'device_id'   => 'nullable|string|max:64',
     ]);
 
-    $empId = (int) $request->employee_id;
-    if ((int) Auth::id() !== $empId && Auth::user()->role !== 'admin') {
+    $empId    = (int) $request->employee_id;
+    $isSelf   = (int) Auth::id() === $empId;
+    if (!$isSelf && Auth::user()->role !== 'admin') {
         return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
     }
+    $employee = User::findOrFail($empId);
 
-    $exists = Attendance::where('employee_id', $empId)->where('date', today())->exists();
-    if ($exists) {
+    // Device binding applies when the employee records for themselves
+    if ($isSelf && $employee->role === 'employee') {
+        if ($err = \App\Support\AttendanceGuard::checkDevice($request, $employee)) {
+            return response()->json(['success' => false, 'message' => $err], 403);
+        }
+    }
+
+    $today = now()->toDateString();
+    if (Attendance::where('employee_id', $empId)->whereDate('date', $today)->exists()) {
         return response()->json(['success' => false, 'message' => 'تم تسجيل حضورك مسبقاً اليوم']);
     }
 
-    $uniLat = 32.028255;
-    $uniLng = 20.068791;
-    $R  = 6371000;
-    $φ1 = deg2rad($request->latitude);
-    $φ2 = deg2rad($uniLat);
-    $Δφ = deg2rad($uniLat - $request->latitude);
-    $Δλ = deg2rad($uniLng  - $request->longitude);
-    $a  = sin($Δφ/2)**2 + cos($φ1)*cos($φ2)*sin($Δλ/2)**2;
-    $distance = $R * 2 * atan2(sqrt($a), sqrt(1-$a));
+    $distance = \App\Support\AttendanceGuard::distance((float) $request->latitude, (float) $request->longitude);
+    $verified = $distance <= \App\Support\AttendanceGuard::MAX_DISTANCE;
+    $now      = now();
 
     try {
         Attendance::create([
             'employee_id'       => $empId,
-            'date'              => today(),
+            'date'              => $today,
             'hours_worked'      => 0,
             'status'            => 'present',
-            'check_in_time'     => now()->toTimeString(),
+            'check_in_time'     => $now->format('H:i:s'),
             'latitude'          => $request->latitude,
             'longitude'         => $request->longitude,
             'distance_meters'   => round($distance, 2),
-            'location_verified' => $distance <= 50,
+            'location_verified' => $verified,
             'ip_address'        => $request->ip(),
+            'device_id'         => $request->device_id,
         ]);
     } catch (\Exception $e) {
         \Log::error('Attendance::create failed: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'خطأ في قاعدة البيانات: ' . $e->getMessage()], 500);
+        return response()->json(['success' => false, 'message' => 'خطأ في قاعدة البيانات'], 500);
     }
 
     try {
         ActivityLog::create([
             'user_id'    => Auth::id(),
             'action'     => 'check_in',
-            'target'     => User::find($empId)->name,
-            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($distance <= 50 ? 'Yes' : 'No'),
+            'target'     => $employee->name,
+            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($verified ? 'Yes' : 'No'),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -449,9 +449,96 @@ Route::post('/attendance/check-in', function (Request $request) {
         'success'  => true,
         'message'  => 'تم تسجيل الحضور بنجاح',
         'distance' => round($distance),
-        'verified' => $distance <= 50,
-        'time'     => now()->format('H:i'),
+        'verified' => $verified,
+        'date'     => $now->format('d/m/Y'),
+        'time'     => $now->format('H:i'),
     ]);
+})->middleware('auth');
+
+// GPS Check-out (انصراف)
+Route::post('/attendance/check-out', function (Request $request) {
+    $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'latitude'    => 'required|numeric|between:-90,90',
+        'longitude'   => 'required|numeric|between:-180,180',
+        'device_id'   => 'nullable|string|max:64',
+    ]);
+
+    $empId  = (int) $request->employee_id;
+    $isSelf = (int) Auth::id() === $empId;
+    if (!$isSelf && Auth::user()->role !== 'admin') {
+        return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+    }
+    $employee = User::findOrFail($empId);
+
+    if ($isSelf && $employee->role === 'employee') {
+        if ($err = \App\Support\AttendanceGuard::checkDevice($request, $employee)) {
+            return response()->json(['success' => false, 'message' => $err], 403);
+        }
+    }
+
+    $att = Attendance::where('employee_id', $empId)->whereDate('date', now()->toDateString())->first();
+    if (!$att) {
+        return response()->json(['success' => false, 'message' => 'لم يتم تسجيل حضورك اليوم، سجّل الحضور أولاً']);
+    }
+    if ($att->check_out_time) {
+        return response()->json(['success' => false, 'message' => 'تم تسجيل انصرافك مسبقاً اليوم']);
+    }
+
+    $distance = \App\Support\AttendanceGuard::distance((float) $request->latitude, (float) $request->longitude);
+    $verified = $distance <= \App\Support\AttendanceGuard::MAX_DISTANCE;
+    $now      = now();
+
+    $checkIn = Carbon::parse($att->date)->setTimeFromTimeString($att->check_in_time ?? $now->format('H:i:s'));
+    $hours   = max(0, round($checkIn->diffInMinutes($now) / 60, 2));
+
+    $att->update([
+        'check_out_time'            => $now->format('H:i:s'),
+        'check_out_latitude'        => $request->latitude,
+        'check_out_longitude'       => $request->longitude,
+        'check_out_distance_meters' => round($distance, 2),
+        'check_out_verified'        => $verified,
+        'hours_worked'              => $hours,
+    ]);
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'check_out',
+            'target'     => $employee->name,
+            'details'    => 'Distance: ' . round($distance) . 'm | Verified: ' . ($verified ? 'Yes' : 'No') . ' | Hours: ' . $hours,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+
+    return response()->json([
+        'success'  => true,
+        'message'  => 'تم تسجيل الانصراف بنجاح',
+        'distance' => round($distance),
+        'verified' => $verified,
+        'date'     => $now->format('d/m/Y'),
+        'time'     => $now->format('H:i'),
+        'hours'    => $hours,
+    ]);
+})->middleware('auth');
+
+// إعادة تعيين الهاتف المسجّل للموظف (Admin فقط) - عند تغيير الموظف لهاتفه
+Route::post('/admin/employees/{id}/reset-device', function (Request $request, $id) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $emp = User::findOrFail($id);
+    $emp->forceFill(['device_id' => null, 'device_bound_at' => null])->save();
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'reset_device',
+            'target'     => $emp->name,
+            'details'    => 'Phone binding cleared',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+    return back()->with('success', 'تم إعادة تعيين الهاتف. سيُربط الحساب بأول هاتف يسجّل منه الموظف');
 })->middleware('auth');
 
 // Attendance Detail (admin)
@@ -460,7 +547,12 @@ Route::get('/attendance/detail/{id}', function ($id) {
     $att = Attendance::with('employee')->findOrFail($id);
     return response()->json([
         'name'     => $att->employee->name,
+        'date'     => Carbon::parse($att->date)->format('d/m/Y'),
         'time'     => $att->check_in_time,
+        'check_out_time'     => $att->check_out_time,
+        'check_out_distance' => $att->check_out_distance_meters !== null ? round($att->check_out_distance_meters) : null,
+        'check_out_verified' => (bool) $att->check_out_verified,
+        'hours'    => $att->hours_worked,
         'distance' => round($att->distance_meters ?? 0),
         'verified' => (bool) $att->location_verified,
         'lat'      => $att->latitude,
