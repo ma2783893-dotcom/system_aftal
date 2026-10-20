@@ -222,17 +222,12 @@
                 </div>
                 <div style="text-align:center; font-size:0.8rem; color:#64748b;">
                     <div>نظام إدارة أعضاء هيئة التدريس</div>
-                    <div style="color:#3b82f6;">الإصدار 1.0.2</div>
+                    <div style="color:#3b82f6;">الإصدار 1.0.3</div>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
                 <div style="font-size:0.85rem; color:#94a3b8;">
                     © 2026 جامعة الأفضل الدولية — جميع الحقوق محفوظة
-                </div>
-                <div style="display:flex; gap:0.75rem;">
-                    <span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:4px 10px; border-radius:20px; font-size:0.75rem;">🔒 نظام آمن</span>
-                    <span style="background:rgba(16,185,129,0.15); color:#34d399; padding:4px 10px; border-radius:20px; font-size:0.75rem;">✓ مرخّص رسمياً</span>
-                    <span style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:4px 10px; border-radius:20px; font-size:0.75rem;">⚡ Laravel 12</span>
                 </div>
             </div>
         </div>

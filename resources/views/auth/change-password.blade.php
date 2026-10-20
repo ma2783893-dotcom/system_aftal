@@ -33,13 +33,13 @@
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">كلمة المرور الجديدة</label>
-                <input type="password" name="password" required minlength="8" autocomplete="new-password"
+                <input type="password" name="password" required minlength="6" autocomplete="new-password"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                <p class="text-xs text-gray-500 mt-1">8 أحرف على الأقل، تحتوي على حروف وأرقام.</p>
+                <p class="text-xs text-gray-500 mt-1">6 أحرف أو أرقام على الأقل.</p>
             </div>
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">تأكيد كلمة المرور الجديدة</label>
-                <input type="password" name="password_confirmation" required minlength="8" autocomplete="new-password"
+                <input type="password" name="password_confirmation" required minlength="6" autocomplete="new-password"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2">
             </div>
             <button type="submit"

@@ -68,19 +68,22 @@ Route::get('/change-password', function () {
 Route::post('/change-password', function (Request $request) {
     $request->validate([
         'current_password' => 'required|current_password',
-        'password'         => ['required', 'confirmed', 'different:current_password',
-                               \Illuminate\Validation\Rules\Password::min(8)->letters()->numbers()],
+        'password'         => 'required|string|min:6|confirmed|different:current_password',
     ], [
+        'current_password.required'         => 'أدخل كلمة المرور الحالية',
         'current_password.current_password' => 'كلمة المرور الحالية غير صحيحة',
-        'password.confirmed'                 => 'تأكيد كلمة المرور غير مطابق',
-        'password.different'                 => 'كلمة المرور الجديدة يجب أن تختلف عن الحالية',
+        'password.required'                 => 'أدخل كلمة المرور الجديدة',
+        'password.min'                      => 'كلمة المرور الجديدة يجب أن تكون 6 أحرف أو أرقام على الأقل',
+        'password.confirmed'                => 'تأكيد كلمة المرور غير مطابق',
+        'password.different'                => 'كلمة المرور الجديدة يجب أن تختلف عن الحالية',
     ]);
 
     $user = Auth::user();
-    $user->forceFill([
-        'password'             => Hash::make($request->password),
-        'must_change_password' => false,
-    ])->save();
+    $user->password = Hash::make($request->password);
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'must_change_password')) {
+        $user->must_change_password = false;
+    }
+    $user->save();
 
     $request->session()->regenerate();
 
@@ -95,8 +98,7 @@ Route::post('/change-password', function (Request $request) {
         ]);
     } catch (\Exception $e) {}
 
-    return redirect($user->role === 'employee' ? '/profile/' . $user->id : '/')
-        ->with('success', 'تم تغيير كلمة المرور بنجاح');
+    return back()->with('success', 'تم تغيير كلمة المرور بنجاح ✅');
 })->middleware('auth');
 
 /*
