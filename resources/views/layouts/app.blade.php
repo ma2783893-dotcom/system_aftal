@@ -182,11 +182,11 @@
                         <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
                         <a href="/change-password" title="تغيير كلمة المرور"
                            class="text-sm bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md transition">🔑</a>
+                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm">{{ __('Logout') }}</button>
+                        </form>
                     @endauth
-                    <form method="POST" action="{{ route('logout') }}" class="m-0">
-                        @csrf
-                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm">{{ __('Logout') }}</button>
-                    </form>
                 </div>
             </div>
         </div>
