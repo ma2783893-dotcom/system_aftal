@@ -19,6 +19,32 @@ class FileStore
 
     public static function put(UploadedFile $file, string $kind, ?int $userId = null): string
     {
+        if (!$file->isValid()) {
+            throw new FileStoreException('تعذر استلام الملف، قد يكون حجمه كبيراً جداً. جرّب ملفاً أصغر من 10 ميجابايت.');
+        }
+
+        // If the deploy happened but /run-migrate was not opened yet, create the table now.
+        if (!Schema::hasTable('stored_files')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {
+                \Log::error('FileStore auto-migrate failed: ' . $e->getMessage());
+            }
+            if (!Schema::hasTable('stored_files')) {
+                throw new FileStoreException('قاعدة البيانات تحتاج تحديث. افتح صفحة /run-migrate بحساب المدير ثم أعد المحاولة.');
+            }
+        }
+
+        try {
+            return self::insert($file, $kind, $userId);
+        } catch (\Throwable $e) {
+            \Log::error('FileStore::put failed: ' . $e->getMessage());
+            throw new FileStoreException('تعذر حفظ الملف. حاول مرة أخرى، وإذا تكررت المشكلة جرّب ملفاً أصغر.');
+        }
+    }
+
+    private static function insert(UploadedFile $file, string $kind, ?int $userId): string
+    {
         $id = DB::table('stored_files')->insertGetId([
             'user_id'       => $userId,
             'kind'          => $kind,
@@ -123,7 +149,7 @@ class FileStore
 
     private static function tableReady(): bool
     {
-        static $ready = null;
-        return $ready ??= Schema::hasTable('stored_files');
+        static $ready = false;
+        return $ready = $ready ?: Schema::hasTable('stored_files');
     }
 }

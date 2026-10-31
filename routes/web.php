@@ -745,6 +745,11 @@ Route::post('/employee/upload-cv', function (Request $request) {
     return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح ✅');
 })->middleware('auth')->name('employee.upload-cv');
 
+// لو فُتح رابط الرفع مباشرة (تحديث الصفحة بعد الرفع)، ارجع لصفحة الموظف بدل خطأ 405
+Route::get('/employee/upload-cv', fn () => redirect('/profile/' . Auth::id() . '#cv'))->middleware('auth');
+Route::get('/admin/employees/{id}/cv', fn ($id) => redirect('/profile/' . (int) $id . '#cv'))->middleware('auth');
+Route::get('/admin/employees/{id}/cv/delete', fn ($id) => redirect('/profile/' . (int) $id . '#cv'))->middleware('auth');
+
 // رفع / حذف السيرة الذاتية لأي موظف من الإدارة
 Route::post('/admin/employees/{id}/cv', function (Request $request, $id) {
     if (!Auth::user()->hasPermission('edit_employee')) abort(403);

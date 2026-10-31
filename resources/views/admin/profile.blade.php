@@ -411,7 +411,8 @@
         @endif
 
         @if($isSelf || $canManage)
-        <form method="POST" action="{{ $isSelf && !$canManage ? '/employee/upload-cv' : '/admin/employees/' . $emp->id . '/cv' }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ $isSelf && !$canManage ? '/employee/upload-cv' : '/admin/employees/' . $emp->id . '/cv' }}" enctype="multipart/form-data"
+              onsubmit="return cvBeforeSubmit(this)">
             @csrf
             <input type="file" name="cv" accept="application/pdf,.pdf" required
                    style="width:100%; border:1px solid #d1d5db; padding:8px; border-radius:8px; margin-bottom:10px; box-sizing:border-box; font-size:0.875rem;">
@@ -420,6 +421,18 @@
                 📤 {{ $cvOk || $emp->cv ? 'استبدال السيرة الذاتية' : 'رفع السيرة الذاتية' }}
             </button>
         </form>
+        <script>
+        function cvBeforeSubmit(form) {
+            var input = form.querySelector('input[type=file]');
+            var f = input && input.files && input.files[0];
+            if (!f) { alert('اختر ملف السيرة الذاتية أولاً'); return false; }
+            if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { alert('السيرة الذاتية يجب أن تكون ملف PDF'); return false; }
+            if (f.size > 10 * 1024 * 1024) { alert('حجم الملف ' + (f.size / 1048576).toFixed(1) + ' ميجابايت، والحد الأقصى 10 ميجابايت'); return false; }
+            var btn = form.querySelector('button[type=submit]');
+            btn.disabled = true; btn.innerHTML = '⏳ جاري الرفع...';
+            return true;
+        }
+        </script>
         @endif
     </div>
     @endif

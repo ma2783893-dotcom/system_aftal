@@ -193,6 +193,13 @@
     </nav>
 
     <main class="py-8" style="position:relative; z-index:1;">
+        @if(session('flash_error') && !request()->is('login'))
+            <div style="max-width:56rem; margin:0 auto 1rem; padding:0 1rem;">
+                <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:12px 16px; border-radius:10px; font-weight:600;">
+                    ⚠️ {{ session('flash_error') }}
+                </div>
+            </div>
+        @endif
         @yield('content')
     </main>
 
