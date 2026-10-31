@@ -28,6 +28,12 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
         <h1 class="text-3xl font-bold text-gray-800">{{ __('Employee List') }}</h1>
         <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+            @if(auth()->user()->role === 'admin')
+            <a href="/admin/credentials"
+               style="background:#b45309; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                🔐 بطاقات الدخول
+            </a>
+            @endif
             <a href="/attendance/calendar"
                style="background:#0891b2; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📅 {{ __('Attendance Calendar') }}

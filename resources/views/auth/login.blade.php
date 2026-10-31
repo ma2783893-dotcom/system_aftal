@@ -55,6 +55,21 @@
 </style>
 
 <script>
+    // إذا بقيت صفحة الدخول مفتوحة طويلاً، أعد تحميلها قبل الإرسال حتى لا يظهر خطأ 419
+    (function () {
+        var openedAt = Date.now();
+        var MAX_AGE = 60 * 60 * 1000; // ساعة
+        function stale() { return Date.now() - openedAt > MAX_AGE; }
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && stale()) location.reload();
+        });
+        window.addEventListener('pageshow', function (e) { if (e.persisted) location.reload(); });
+        var form = document.querySelector('form[action$="/login"]');
+        if (form) form.addEventListener('submit', function (e) {
+            if (stale()) { e.preventDefault(); location.reload(); }
+        });
+    })();
+
     // Force light mode on login page — does NOT modify localStorage
     setTimeout(function() {
         document.body.classList.remove('dark-mode');

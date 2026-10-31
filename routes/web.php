@@ -722,3 +722,66 @@ Route::post('/employee/upload-cv', function (Request $request) {
     Auth::user()->update(['cv' => $fileName]);
     return back()->with('success', 'تم رفع السيرة الذاتية بنجاح');
 })->middleware('auth')->name('employee.upload-cv');
+
+/*
+|--------------------------------------------------------------------------
+| 8. بطاقات الدخول للموظفين (كلمات مرور مؤقتة جديدة + طباعة PDF)
+|--------------------------------------------------------------------------
+| كلمات المرور محفوظة مشفّرة ولا يمكن استرجاعها، لذلك تُنشأ كلمات مؤقتة جديدة
+| تُعرض مرة واحدة فقط للطباعة، ويُجبر الموظف على تغييرها عند أول دخول.
+*/
+Route::get('/admin/credentials', function () {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $employees = User::where('role', 'employee')->orderBy('name')->get();
+    return view('admin.credentials', compact('employees'));
+})->middleware('auth');
+
+Route::post('/admin/credentials', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $request->validate([
+        'employee_ids'   => 'required|array|min:1',
+        'employee_ids.*' => 'integer|exists:users,id',
+        'confirm'        => 'accepted',
+    ], [
+        'employee_ids.required' => 'اختر موظفاً واحداً على الأقل',
+        'confirm.accepted'      => 'يجب تأكيد إعادة تعيين كلمات المرور',
+    ]);
+
+    $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    $cards = [];
+    $employees = User::where('role', 'employee')->whereIn('id', $request->employee_ids)->orderBy('name')->get();
+
+    foreach ($employees as $emp) {
+        $plain = '';
+        for ($i = 0; $i < 8; $i++) {
+            $plain .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+        $emp->forceFill([
+            'password'             => Hash::make($plain),
+            'must_change_password' => true,
+        ])->save();
+        $cards[] = [
+            'name'           => $emp->name,
+            'email'          => $emp->email,
+            'specialization' => $emp->specialization,
+            'password'       => $plain,
+        ];
+    }
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'reset_passwords',
+            'target'     => count($cards) . ' employees',
+            'details'    => 'Temporary passwords generated for printing',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+
+    $loginUrl = url('/login');
+    return response()
+        ->view('admin.credentials-print', compact('cards', 'loginUrl'))
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+})->middleware('auth');
+

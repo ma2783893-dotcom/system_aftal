@@ -19,11 +19,28 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+        // تسجيل الخروج لا يحتاج رمز CSRF حتى لا يظهر خطأ 419 عند انتهاء الجلسة
+        $middleware->validateCsrfTokens(except: ['logout']);
         $middleware->web(append: [
             \App\Http\Middleware\LanguageSwitcher::class,
             \App\Http\Middleware\EmployeeAccessGuard::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // بدل صفحة "419 Page Expired": ارجع لصفحة الدخول برسالة واضحة
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, \Illuminate\Http\Request $request) {
+            if ($e->getStatusCode() !== 419) {
+                return null;
+            }
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'انتهت صلاحية الصفحة. أعد تحميل الصفحة وحاول مرة أخرى',
+                ], 419);
+            }
+            $target = $request->is('login') || !auth()->check() ? '/login' : url()->previous('/');
+            return redirect($target)
+                ->withInput($request->except(['password', 'password_confirmation', 'current_password', '_token']))
+                ->withErrors(['email' => 'انتهت صلاحية الصفحة. أعد المحاولة الآن']);
+        });
     })->create();
