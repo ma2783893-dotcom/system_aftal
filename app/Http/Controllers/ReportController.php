@@ -9,6 +9,10 @@ class ReportController extends Controller
 {
     public function monthly()
     {
+        if (!auth()->user()->hasPermission('view_reports')) {
+            abort(403);
+        }
+
         $employees = User::where('role', 'employee')->with('finance')->get();
         $month     = now()->format('Y-m');
 

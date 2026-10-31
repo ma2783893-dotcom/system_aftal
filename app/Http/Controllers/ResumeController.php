@@ -2,45 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Support\FileStore;
 
 class ResumeController extends Controller
 {
     public function view($id)
     {
-        if (!auth()->check()) abort(403);
-
-        $employee = \App\Models\User::findOrFail($id);
-
-        if (!$employee->cv) {
-            return back()->with('error', 'لا يوجد ملف سيرة ذاتية لهذا الموظف');
-        }
-
-        $path = public_path('uploads/cv/' . $employee->cv);
-
-        if (!file_exists($path)) {
-            return back()->with('error', 'الملف غير موجود على السيرفر');
-        }
-
-        return response()->file($path);
+        return $this->serve($id, true);
     }
 
     public function download($id)
     {
-        if (!auth()->check()) abort(403);
+        return $this->serve($id, false);
+    }
 
-        $employee = \App\Models\User::findOrFail($id);
-
-        if (!$employee->cv) {
-            return back()->with('error', 'لا يوجد ملف سيرة ذاتية لهذا الموظف');
+    private function serve($id, bool $inline)
+    {
+        $employee = User::findOrFail($id);
+        if (!auth()->user()->canSeeFilesOf($employee)) {
+            abort(403);
         }
 
-        $path = public_path('uploads/cv/' . $employee->cv);
+        $name = 'السيرة الذاتية - ' . $employee->name . '.' . FileStore::extension($employee->cv, 'pdf');
+        $response = FileStore::response($employee->cv, 'cv', $name, $inline);
 
-        if (!file_exists($path)) {
-            return back()->with('error', 'الملف غير موجود على السيرفر — قد يكون حُذف أو لم يُرفع بعد');
+        if ($response) {
+            return $response;
         }
 
-        return response()->download($path, 'Resume_' . $employee->name . '.pdf');
+        // The file was lost (old uploads were wiped by a redeploy) or never uploaded.
+        return response()->view('errors.file-missing', [
+            'title'   => $employee->cv ? 'ملف السيرة الذاتية مفقود' : 'لا توجد سيرة ذاتية',
+            'message' => $employee->cv
+                ? 'ملف السيرة الذاتية لم يعد موجوداً على السيرفر. يرجى إعادة رفعه من صفحة الموظف.'
+                : 'لم يتم رفع سيرة ذاتية لهذا الموظف بعد.',
+            'back'    => url('/profile/' . $employee->id),
+        ], 404);
     }
 }

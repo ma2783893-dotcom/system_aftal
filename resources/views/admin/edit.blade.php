@@ -6,13 +6,19 @@
     <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <h1 class="text-2xl font-bold mb-6 text-gray-800">✏️ {{ __('Edit Employee') }}</h1>
 
+        @if($errors->any())
+            <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; margin-bottom:16px; font-size:0.9rem;">
+                @foreach($errors->all() as $e)<div>⚠️ {{ $e }}</div>@endforeach
+            </div>
+        @endif
+
         <form action="/update-employee/{{ $emp->id }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             {{-- Profile Photo Preview --}}
             <div class="mb-6 text-center">
                 <img id="photoPreview"
-                     src="{{ $emp->profile_photo ? asset('uploads/photos/' . $emp->profile_photo) : '/assets/default-avatar.svg' }}"
+                     src="{{ $emp->photoUrl() }}"
                      style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #e5e7eb; margin:0 auto;"
                      onerror="this.src='/assets/default-avatar.svg'">
                 <div style="margin-top:0.75rem;">
@@ -42,9 +48,11 @@
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Current Resume') }}</label>
-                @if($emp->cv)
-                    <a href="{{ asset('uploads/cv/'.$emp->cv) }}" target="_blank"
-                        class="text-blue-500 underline text-sm">📄 {{ __('Download PDF') }}</a>
+                @if($emp->hasCvFile())
+                    <a href="{{ route('resume.view', $emp->id) }}" target="_blank"
+                        class="text-blue-500 underline text-sm">📄 عرض السيرة الذاتية</a>
+                @elseif($emp->cv)
+                    <span style="color:#b45309; font-size:0.875rem;">⚠️ الملف مفقود من السيرفر، ارفعه من جديد بالأسفل</span>
                 @else
                     <span class="text-gray-500 text-sm">{{ __('Not Available') }}</span>
                 @endif

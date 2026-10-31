@@ -24,6 +24,12 @@
         </div>
     </div>
 
+    @if(session('success'))
+    <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:12px 16px; margin-bottom:1rem; color:#15803d; font-weight:600;">
+        ✅ {{ session('success') }}
+    </div>
+    @endif
+
     {{-- Header Row --}}
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
         <h1 class="text-3xl font-bold text-gray-800">{{ __('Employee List') }}</h1>
@@ -34,28 +40,36 @@
                 🔐 بطاقات الدخول
             </a>
             @endif
-            <a href="/attendance/calendar"
+@if(auth()->user()->role === 'admin')
+                        <a href="/attendance/calendar"
                style="background:#0891b2; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📅 {{ __('Attendance Calendar') }}
             </a>
-            <a href="/reports/monthly"
+            @endif
+@if(auth()->user()->hasPermission('view_reports'))
+                        <a href="/reports/monthly"
                style="background:#7c3aed; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📊 {{ __('Monthly Report') }}
             </a>
+            @endif
             @if(auth()->user()->role === 'admin')
             <a href="/activity-log"
                style="background:#374151; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📋 سجل النشاط
             </a>
             @endif
+            @if(auth()->user()->role === 'admin')
             <button onclick="document.getElementById('addSupervisorModal').classList.remove('hidden')"
                 style="background:#7c3aed; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-size:1rem; font-weight:bold;">
                 + إضافة مشرف
             </button>
+            @endif
+            @if(auth()->user()->hasPermission('add_employee'))
             <button onclick="document.getElementById('addModal').style.display='flex'"
                 style="background:#16a34a; color:white; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-size:1rem; font-weight:bold;">
                 + {{ __('Add New Employee') }}
             </button>
+            @endif
         </div>
     </div>
 
@@ -90,11 +104,6 @@
                 @foreach($errors->all() as $err)
                     <p style="color:#dc2626; font-size:0.875rem; margin:2px 0;">⚠️ {{ $err }}</p>
                 @endforeach
-            </div>
-            @endif
-            @if(session('success'))
-            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px; margin-bottom:1rem;">
-                <p style="color:#15803d; font-size:0.875rem; margin:0;">✅ {{ session('success') }}</p>
             </div>
             @endif
             <form action="/add-employee" method="POST" enctype="multipart/form-data">
@@ -205,7 +214,7 @@
                     <tr class="border-t">
                         <td class="p-3">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="{{ $emp->profile_photo ? asset('uploads/photos/' . $emp->profile_photo) : '/assets/default-avatar.svg' }}"
+                                <img src="{{ $emp->photoUrl() }}"
                                      style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb;"
                                      onerror="this.src='/assets/default-avatar.svg'">
                                 <span>{{ $emp->name }}</span>
@@ -214,24 +223,34 @@
                         <td class="p-3">{{ $emp->email }}</td>
                         <td class="p-3">{{ $emp->specialization }}</td>
                         <td class="p-3">
-                            @if($emp->cv)
-                                <div class="flex gap-2">
-                                    <a href="/profile/{{ $emp->id }}"
-                                        class="text-blue-500 hover:text-blue-700 font-medium underline">{{ __('View Profile') }}</a>
-                                    <span class="text-gray-300">|</span>
+                            <div class="flex gap-2 items-center flex-wrap">
+                                <a href="/profile/{{ $emp->id }}"
+                                    class="text-blue-500 hover:text-blue-700 font-medium underline">{{ __('View Profile') }}</a>
+                                <span class="text-gray-300">|</span>
+                                @if($emp->hasCvFile())
                                     <a href="{{ route('resume.download', $emp->id) }}"
-                                        class="text-green-500 hover:text-green-700 font-medium underline">{{ __('Download') }}</a>
-                                </div>
-                            @else
-                                <span class="text-gray-500">{{ __('Not Available') }}</span>
-                            @endif
+                                        class="text-green-600 hover:text-green-700 font-medium underline">{{ __('Download') }}</a>
+                                @elseif($emp->cv)
+                                    <span style="color:#b45309; font-size:0.8rem;" title="الملف حُذف من السيرفر، أعد رفعه من صفحة الموظف">⚠️ مفقود</span>
+                                @else
+                                    <span class="text-gray-500">{{ __('Not Available') }}</span>
+                                @endif
+                            </div>
                         </td>
-                        <td class="p-3 flex gap-2">
+                        <td class="p-3">
+                            <div class="flex gap-2">
+                            @if(auth()->user()->hasPermission('edit_employee'))
                             <a href="/edit-employee/{{ $emp->id }}"
                                 class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 text-sm">{{ __('Edit') }}</a>
-                            <a href="/delete-employee/{{ $emp->id }}"
-                                class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm"
-                                onclick="return confirm('Are you sure?')">{{ __('Delete') }}</a>
+                            @endif
+                            @if(auth()->user()->hasPermission('delete_employee'))
+                            <form method="POST" action="/delete-employee/{{ $emp->id }}" style="margin:0;"
+                                  onsubmit="return confirm('حذف الموظف {{ addslashes($emp->name) }} نهائياً مع سجلاته؟ لا يمكن التراجع.')">
+                                @csrf
+                                <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm">{{ __('Delete') }}</button>
+                            </form>
+                            @endif
+                            </div>
                         </td>
                     </tr>
                 @endforeach

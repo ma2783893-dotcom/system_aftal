@@ -21,8 +21,15 @@ use Carbon\Carbon;
 |--------------------------------------------------------------------------
 */
 Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
-Route::get('/resume/view/{id}', [ResumeController::class, 'view'])->name('resume.view');
-Route::get('/resume/download/{id}', [ResumeController::class, 'download'])->name('resume.download');
+Route::get('/resume/view/{id}', [ResumeController::class, 'view'])->name('resume.view')->middleware('auth');
+Route::get('/resume/download/{id}', [ResumeController::class, 'download'])->name('resume.download')->middleware('auth');
+
+// صورة الموظف (محفوظة في قاعدة البيانات)
+Route::get('/photo/{id}', function ($id) {
+    $user = User::findOrFail($id);
+    $res  = \App\Support\FileStore::response($user->profile_photo, 'photo', 'photo.' . \App\Support\FileStore::extension($user->profile_photo, 'jpg'), true);
+    return $res ?: redirect('/assets/default-avatar.svg');
+})->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
@@ -49,8 +56,8 @@ Route::post('/login', function (Request $request) {
 
     return back()->withErrors([
         'email' => 'البيانات المدخلة غير صحيحة.',
-    ]);
-});
+    ])->onlyInput('email');
+})->middleware('throttle:10,1');
 
 // تسجيل الخروج
 Route::post('/logout', function (Request $request) {
@@ -192,7 +199,7 @@ Route::post('/add-supervisor', function (Request $request) {
 
 // صفحة إضافة موظف جديد
 Route::get('/create-employee', function () {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    if (!Auth::user()->hasPermission('add_employee')) abort(403);
     return view('admin.create_employee');
 })->middleware('auth');
 
@@ -200,33 +207,26 @@ Route::get('/create-employee', function () {
 Route::post('/add-employee', function (Request $request) {
     \Log::info('ADD EMPLOYEE HIT', $request->except(['password', 'cv', 'profile_photo']));
 
-    if (Auth::user()->role !== 'admin') abort(403);
+    if (!Auth::user()->hasPermission('add_employee')) abort(403);
 
     $request->validate([
         'name'          => 'required|string|max:255',
         'email'         => 'required|email|unique:users,email',
         'specialization'=> 'required|string|max:255',
         'password'      => 'required|string|min:6',
-        'cv'            => 'nullable|mimes:pdf|max:2048',
-        'profile_photo' => 'nullable|image|max:2048',
+        'cv'            => 'nullable|file|mimes:pdf|max:10240',
+        'profile_photo' => 'nullable|image|max:5120',
+    ], [
+        'email.unique'       => 'هذا البريد الإلكتروني مستخدم لموظف آخر',
+        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.max'             => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
+        'profile_photo.image'=> 'الصورة الشخصية يجب أن تكون صورة',
+        'profile_photo.max'  => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
+        'password.min'       => 'كلمة المرور 6 أحرف أو أرقام على الأقل',
     ]);
 
     $cvFileName    = null;
     $photoFileName = null;
-
-    if ($request->hasFile('cv')) {
-        $dir = public_path('uploads/cv');
-        if (!is_dir($dir)) mkdir($dir, 0775, true);
-        $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
-        $request->cv->move($dir, $cvFileName);
-    }
-
-    if ($request->hasFile('profile_photo')) {
-        $dir = public_path('uploads/photos');
-        if (!is_dir($dir)) mkdir($dir, 0775, true);
-        $photoFileName = time() . '_' . $request->profile_photo->getClientOriginalName();
-        $request->profile_photo->move($dir, $photoFileName);
-    }
 
     try {
         $employee = User::create([
@@ -239,6 +239,14 @@ Route::post('/add-employee', function (Request $request) {
             'password'      => Hash::make($request->password),
         ]);
         $employee->forceFill(['must_change_password' => true])->save();
+
+        if ($request->hasFile('cv')) {
+            $employee->cv = \App\Support\FileStore::put($request->file('cv'), 'cv', $employee->id);
+        }
+        if ($request->hasFile('profile_photo')) {
+            $employee->profile_photo = \App\Support\FileStore::put($request->file('profile_photo'), 'photo', $employee->id);
+        }
+        $employee->save();
     } catch (\Exception $e) {
         \Log::error('Employee create failed: ' . $e->getMessage());
         return back()->withErrors(['error' => 'فشل إضافة الموظف: ' . $e->getMessage()])->withInput();
@@ -268,55 +276,66 @@ Route::post('/add-employee', function (Request $request) {
     return redirect('/')->with('success', 'تم إضافة الموظف بنجاح: ' . $employee->name);
 })->middleware('auth');
 
-// حذف الموظف مع ملفه من الجهاز
-Route::get('/delete-employee/{id}', function ($id) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
-    $emp = User::findOrFail($id);
+// حذف الموظف (POST فقط لمنع الحذف بالخطأ عبر رابط)
+Route::post('/delete-employee/{id}', function (Request $request, $id) {
+    if (!Auth::user()->hasPermission('delete_employee')) abort(403);
+    $emp = User::where('role', 'employee')->findOrFail($id);
+    $name = $emp->name;
 
-    if ($emp->cv && file_exists(public_path('uploads/cv/' . $emp->cv))) {
-        unlink(public_path('uploads/cv/' . $emp->cv));
-    }
-
+    \App\Support\FileStore::delete($emp->cv, 'cv');
+    \App\Support\FileStore::delete($emp->profile_photo, 'photo');
     $emp->delete();
-    return redirect('/')->with('success', 'تم حذف الموظف');
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'deleted_employee',
+            'target'     => $name,
+            'details'    => 'Employee deleted',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+
+    return redirect('/')->with('success', 'تم حذف الموظف: ' . $name);
 })->middleware('auth');
 
 // تعديل الموظف (عرض الصفحة - تم إكماله هنا بنجاح)
 Route::get('/edit-employee/{id}', function ($id) {
-    if (Illuminate\Support\Facades\Auth::user()->role !== 'admin') abort(403);
+    if (!Auth::user()->hasPermission('edit_employee')) abort(403);
     $emp = User::findOrFail($id);
     return view('admin.edit', compact('emp'));
 })->middleware('auth');
 
 // تحديث بيانات الموظف
 Route::post('/update-employee/{id}', function (Request $request, $id) {
-    if (Auth::user()->role !== 'admin') abort(403);
+    if (!Auth::user()->hasPermission('edit_employee')) abort(403);
     $emp = User::findOrFail($id);
 
     $request->validate([
         'name'          => 'required|string|max:255',
         'email'         => 'required|email|unique:users,email,' . $id,
         'specialization'=> 'required|string|max:255',
-        'cv'            => 'nullable|mimes:pdf|max:2048',
-        'profile_photo' => 'nullable|image|max:2048',
+        'cv'            => 'nullable|file|mimes:pdf|max:10240',
+        'profile_photo' => 'nullable|image|max:5120',
+    ], [
+        'email.unique'       => 'هذا البريد الإلكتروني مستخدم لموظف آخر',
+        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.max'             => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
+        'profile_photo.image'=> 'الصورة الشخصية يجب أن تكون صورة',
+        'profile_photo.max'  => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
     ]);
 
     if ($request->hasFile('cv')) {
-        if ($emp->cv && file_exists(public_path('uploads/cv/' . $emp->cv))) {
-            unlink(public_path('uploads/cv/' . $emp->cv));
-        }
-        $cvFileName = time() . '_' . $request->cv->getClientOriginalName();
-        $request->cv->move(public_path('uploads/cv'), $cvFileName);
-        $emp->cv = $cvFileName;
+        $new = \App\Support\FileStore::put($request->file('cv'), 'cv', $emp->id);
+        \App\Support\FileStore::delete($emp->cv, 'cv');
+        $emp->cv = $new;
     }
 
     if ($request->hasFile('profile_photo')) {
-        if ($emp->profile_photo && file_exists(public_path('uploads/photos/' . $emp->profile_photo))) {
-            unlink(public_path('uploads/photos/' . $emp->profile_photo));
-        }
-        $photoFileName = time() . '_' . $request->profile_photo->getClientOriginalName();
-        $request->profile_photo->move(public_path('uploads/photos'), $photoFileName);
-        $emp->profile_photo = $photoFileName;
+        $new = \App\Support\FileStore::put($request->file('profile_photo'), 'photo', $emp->id);
+        \App\Support\FileStore::delete($emp->profile_photo, 'photo');
+        $emp->profile_photo = $new;
     }
 
     $emp->name           = $request->name;
@@ -664,11 +683,7 @@ Route::post('/voucher/add', function (Request $request) {
     try {
         $file = null;
         if ($request->hasFile('attachment')) {
-            $dir = public_path('uploads/vouchers');
-            if (!is_dir($dir)) mkdir($dir, 0775, true);
-            $ext  = strtolower($request->attachment->getClientOriginalExtension() ?: 'bin');
-            $file = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $ext;
-            $request->attachment->move($dir, $file);
+            $file = \App\Support\FileStore::put($request->file('attachment'), 'voucher', (int) $request->employee_id);
         }
 
         \App\Models\EmployeeVoucher::create([
@@ -699,12 +714,16 @@ Route::patch('/voucher/{id}/unlock', function ($id) {
 
 Route::get('/voucher/{id}/download', function ($id) {
     $v = \App\Models\EmployeeVoucher::findOrFail($id);
-    if ((int) Auth::id() !== (int) $v->employee_id && Auth::user()->role !== 'admin') abort(403);
-    if ($v->status !== 'available' && Auth::user()->role !== 'admin') abort(403);
-    if (!$v->attachment) abort(404);
-    $path = public_path('uploads/vouchers/' . $v->attachment);
-    if (!file_exists($path)) abort(404);
-    return response()->download($path);
+    if ((int) Auth::id() !== (int) $v->employee_id && !Auth::user()->isAdmin()) abort(403);
+    if ($v->status !== 'available' && !Auth::user()->isAdmin()) abort(403);
+    $name = 'قسيمة-' . $v->id . '.' . \App\Support\FileStore::extension($v->attachment, 'pdf');
+    $res  = \App\Support\FileStore::response($v->attachment, 'voucher', $name, false);
+    if ($res) return $res;
+    return response()->view('errors.file-missing', [
+        'title'   => 'مرفق القسيمة مفقود',
+        'message' => 'ملف هذه القسيمة لم يعد موجوداً على السيرفر. يرجى من الإدارة إعادة إرفاقه.',
+        'back'    => url('/profile/' . $v->employee_id),
+    ], 404);
 })->middleware('auth');
 
 /*
@@ -714,14 +733,50 @@ Route::get('/voucher/{id}/download', function ($id) {
 */
 
 Route::post('/employee/upload-cv', function (Request $request) {
-    $request->validate(['cv' => 'required|mimes:pdf|max:5120']);
-    $dir = public_path('uploads/cv');
-    if (!is_dir($dir)) mkdir($dir, 0775, true);
-    $fileName = time() . '_' . $request->cv->getClientOriginalName();
-    $request->cv->move($dir, $fileName);
-    Auth::user()->update(['cv' => $fileName]);
-    return back()->with('success', 'تم رفع السيرة الذاتية بنجاح');
+    $request->validate(['cv' => 'required|file|mimes:pdf|max:10240'], [
+        'cv.required' => 'اختر ملف السيرة الذاتية',
+        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.max'      => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
+    ]);
+    $user = Auth::user();
+    $new  = \App\Support\FileStore::put($request->file('cv'), 'cv', $user->id);
+    \App\Support\FileStore::delete($user->cv, 'cv');
+    $user->forceFill(['cv' => $new])->save();
+    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح ✅');
 })->middleware('auth')->name('employee.upload-cv');
+
+// رفع / حذف السيرة الذاتية لأي موظف من الإدارة
+Route::post('/admin/employees/{id}/cv', function (Request $request, $id) {
+    if (!Auth::user()->hasPermission('edit_employee')) abort(403);
+    $request->validate(['cv' => 'required|file|mimes:pdf|max:10240'], [
+        'cv.required' => 'اختر ملف السيرة الذاتية',
+        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.max'      => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
+    ]);
+    $emp = User::findOrFail($id);
+    $new = \App\Support\FileStore::put($request->file('cv'), 'cv', $emp->id);
+    \App\Support\FileStore::delete($emp->cv, 'cv');
+    $emp->forceFill(['cv' => $new])->save();
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'uploaded_cv',
+            'target'     => $emp->name,
+            'details'    => 'CV uploaded by administration',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح ✅');
+})->middleware('auth');
+
+Route::post('/admin/employees/{id}/cv/delete', function ($id) {
+    if (!Auth::user()->hasPermission('edit_employee')) abort(403);
+    $emp = User::findOrFail($id);
+    \App\Support\FileStore::delete($emp->cv, 'cv');
+    $emp->forceFill(['cv' => null])->save();
+    return back()->with('cv_success', 'تم حذف السيرة الذاتية');
+})->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------

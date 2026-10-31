@@ -360,32 +360,67 @@
     @endif
     @endif
 
-    {{-- Employee CV Upload (employee viewing own profile) --}}
-    @if(auth()->user()->role === 'employee' && auth()->id() === $emp->id)
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-        <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;">📄 سيرتي الذاتية</h3>
-        @if($emp->cv)
-            <p style="color:#15803d; margin-bottom:8px; font-size:0.875rem;">✅ تم رفع السيرة الذاتية</p>
-            <a href="{{ route('resume.download', $emp->id) }}"
-               style="display:inline-block; background:#3b82f6; color:white; padding:6px 14px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600; margin-bottom:12px;">
-                📥 تحميل السيرة الذاتية
-            </a>
+    {{-- CV card: the employee for themself, or administration for any employee --}}
+    @php
+        $isSelf    = auth()->id() === $emp->id;
+        $canManage = auth()->user()->hasPermission('edit_employee');
+        $cvOk      = $emp->hasCvFile();
+    @endphp
+    @if($isSelf || $canManage || auth()->user()->canSeeFilesOf($emp))
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6" id="cv">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;">📄 {{ $isSelf ? 'سيرتي الذاتية' : 'السيرة الذاتية' }}</h3>
+
+        @if(session('cv_success'))
+            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
+                {{ session('cv_success') }}
+            </div>
+        @endif
+        @error('cv')
+            <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px; margin-bottom:12px; color:#b91c1c; font-size:0.875rem;">
+                ⚠️ {{ $message }}
+            </div>
+        @enderror
+
+        @if($cvOk)
+            <p style="color:#15803d; margin-bottom:10px; font-size:0.9rem;">✅ السيرة الذاتية مرفوعة</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                <a href="{{ route('resume.view', $emp->id) }}" target="_blank"
+                   style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
+                    👁️ عرض
+                </a>
+                <a href="{{ route('resume.download', $emp->id) }}"
+                   style="background:#3b82f6; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
+                    📥 تحميل
+                </a>
+                @if($canManage)
+                <form method="POST" action="/admin/employees/{{ $emp->id }}/cv/delete" style="margin:0;"
+                      onsubmit="return confirm('حذف السيرة الذاتية لهذا الموظف؟')">
+                    @csrf
+                    <button style="background:#fee2e2; color:#b91c1c; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-size:0.875rem; font-weight:700; font-family:inherit;">
+                        🗑️ حذف
+                    </button>
+                </form>
+                @endif
+            </div>
+        @elseif($emp->cv)
+            <p style="background:#fff7ed; border:1px solid #fdba74; color:#9a3412; padding:10px; border-radius:8px; font-size:0.875rem; margin-bottom:12px;">
+                ⚠️ ملف السيرة الذاتية القديم لم يعد موجوداً على السيرفر. يرجى رفعه من جديد.
+            </p>
         @else
             <p style="color:#9ca3af; font-size:0.875rem; margin-bottom:12px;">لم يتم رفع سيرة ذاتية بعد</p>
         @endif
-        @if(session('cv_success'))
-            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
-                ✅ {{ session('cv_success') }}
-            </div>
-        @endif
-        <form method="POST" action="/employee/upload-cv" enctype="multipart/form-data">
+
+        @if($isSelf || $canManage)
+        <form method="POST" action="{{ $isSelf && !$canManage ? '/employee/upload-cv' : '/admin/employees/' . $emp->id . '/cv' }}" enctype="multipart/form-data">
             @csrf
-            <input type="file" name="cv" accept=".pdf" required
+            <input type="file" name="cv" accept="application/pdf,.pdf" required
                    style="width:100%; border:1px solid #d1d5db; padding:8px; border-radius:8px; margin-bottom:10px; box-sizing:border-box; font-size:0.875rem;">
-            <button type="submit" style="background:#2563eb; color:white; padding:8px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
-                📤 رفع السيرة الذاتية
+            <p style="font-size:0.75rem; color:#94a3b8; margin:-4px 0 10px;">ملف PDF فقط، حتى 10 ميجابايت</p>
+            <button type="submit" style="background:#2563eb; color:white; padding:9px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
+                📤 {{ $cvOk || $emp->cv ? 'استبدال السيرة الذاتية' : 'رفع السيرة الذاتية' }}
             </button>
         </form>
+        @endif
     </div>
     @endif
 
@@ -402,7 +437,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500 mb-1">{{ __('Role') }}</p>
-                <p class="font-bold capitalize text-gray-800">{{ $emp->role }}</p>
+                <p class="font-bold text-gray-800">{{ $emp->roleLabel() }}</p>
             </div>
         </div>
 
@@ -589,21 +624,14 @@
         </div>
         @endif
 
-        <div>
+        @if($emp->hasCvFile())
+        <div class="hidden md:block">
             <h2 class="text-xl font-bold text-gray-800 mb-4">{{ __('Resume') }}</h2>
-            @if($emp->cv)
-                <div class="border rounded-lg overflow-hidden h-screen max-h-[800px]">
-                    <iframe src="{{ route('resume.view', $emp->id) }}" class="w-full h-full" frameborder="0"></iframe>
-                </div>
-            @else
-                <div class="bg-gray-50 p-6 rounded-lg text-center text-gray-500 border border-gray-200">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>{{ __('No resume uploaded.') }}</span>
-                </div>
-            @endif
+            <div class="border rounded-lg overflow-hidden" style="height:800px;">
+                <iframe src="{{ route('resume.view', $emp->id) }}" class="w-full h-full" frameborder="0" title="CV"></iframe>
+            </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection

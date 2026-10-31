@@ -85,4 +85,51 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['admin', 'manager']);
     }
+
+    /**
+     * Admins can do everything; supervisors only what was ticked when they were created.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        if ($this->role !== 'supervisor') {
+            return false;
+        }
+        $perms = $this->permissions;
+        if (is_string($perms)) {
+            $perms = json_decode($perms, true);
+            if (is_string($perms)) {           // stored double-encoded
+                $perms = json_decode($perms, true);
+            }
+        }
+        return in_array($permission, (array) $perms, true);
+    }
+
+    /** Admin, supervisor, or the employee themself may see this person's CV. */
+    public function canSeeFilesOf(User $other): bool
+    {
+        return $this->id === $other->id || $this->isAdmin() || $this->role === 'supervisor';
+    }
+
+    public function hasCvFile(): bool
+    {
+        return \App\Support\FileStore::exists($this->cv, 'cv');
+    }
+
+    public function photoUrl(): string
+    {
+        return $this->profile_photo ? url('/photo/' . $this->id) . '?v=' . substr(md5($this->profile_photo), 0, 8) : '/assets/default-avatar.svg';
+    }
+
+    public function roleLabel(): string
+    {
+        return [
+            'admin'      => 'مدير النظام',
+            'manager'    => 'مدير',
+            'supervisor' => 'مشرف',
+            'employee'   => 'موظف',
+        ][$this->role] ?? (string) $this->role;
+    }
 }
