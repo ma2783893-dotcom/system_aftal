@@ -143,7 +143,7 @@
                         <label style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.4rem;">
                             📄 {{ __('Resume (PDF)') }}
                         </label>
-                        <input type="file" name="cv" accept=".pdf"
+                        <input type="file" name="cv" accept=".pdf,.doc,.docx,image/*"
                             class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
                     </div>
                     <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded transition">
@@ -197,8 +197,43 @@
         </div>
     </div>
 
-    {{-- Employee Table --}}
-    <div class="bg-white p-4 rounded shadow overflow-x-auto">
+    {{-- Employee cards (phones) --}}
+    <div class="md:hidden space-y-3">
+        @foreach($employees as $emp)
+        <div class="emp-row bg-white rounded-xl shadow-sm border border-gray-100 p-4" data-spec="{{ mb_strtolower($emp->specialization ?? '') }}">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="{{ $emp->photoUrl() }}" alt="" onerror="this.src='/assets/default-avatar.svg'"
+                     style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb; flex-shrink:0;">
+                <div style="min-width:0; flex:1;">
+                    <a href="/profile/{{ $emp->id }}" style="font-weight:700; color:#0a2540; display:block;">{{ $emp->name }}</a>
+                    <div style="font-size:0.8rem; color:#64748b; direction:ltr; text-align:start; overflow-wrap:anywhere;">{{ $emp->email }}</div>
+                    <span style="display:inline-block; margin-top:4px; background:#e0e7ff; color:#3730a3; font-size:0.72rem; padding:2px 10px; border-radius:999px;">{{ $emp->specialization }}</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+                <a href="/profile/{{ $emp->id }}" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">{{ __('View Profile') }}</a>
+                @if($emp->hasCvFile())
+                    <a href="{{ route('resume.download', $emp->id) }}" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">📄 السيرة</a>
+                @elseif($emp->cv)
+                    <span style="color:#b45309; font-size:0.8rem;">⚠️ السيرة مفقودة</span>
+                @endif
+                @if(auth()->user()->hasPermission('edit_employee'))
+                    <a href="/edit-employee/{{ $emp->id }}" class="bg-yellow-500 text-white px-3 py-1.5 rounded text-sm">{{ __('Edit') }}</a>
+                @endif
+                @if(auth()->user()->hasPermission('delete_employee'))
+                <form method="POST" action="/delete-employee/{{ $emp->id }}" style="margin:0;"
+                      onsubmit="return confirm('حذف الموظف {{ addslashes($emp->name) }} نهائياً مع سجلاته؟ لا يمكن التراجع.')">
+                    @csrf
+                    <button type="submit" class="bg-red-600 text-white px-3 py-1.5 rounded text-sm">{{ __('Delete') }}</button>
+                </form>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- Employee Table (tablets and computers) --}}
+    <div class="hidden md:block bg-white p-4 rounded shadow overflow-x-auto">
         <table class="w-full text-start border-collapse">
             <thead>
                 <tr class="bg-gray-200 text-gray-700">
@@ -211,7 +246,7 @@
             </thead>
             <tbody>
                 @foreach($employees as $emp)
-                    <tr class="border-t">
+                    <tr class="border-t emp-row" data-spec="{{ mb_strtolower($emp->specialization ?? '') }}">
                         <td class="p-3">
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <img src="{{ $emp->photoUrl() }}"
@@ -263,10 +298,10 @@
 function applyFilters() {
     const input = document.getElementById('searchBox').value.toLowerCase();
     const spec  = document.getElementById('filterSpec').value.toLowerCase();
-    document.querySelectorAll('tbody tr').forEach(row => {
+    document.querySelectorAll('.emp-row').forEach(row => {
         const text    = row.textContent.toLowerCase();
-        const rowSpec = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
-        row.style.display = ((!input || text.includes(input)) && (!spec || rowSpec.includes(spec))) ? '' : 'none';
+        const rowSpec = row.dataset.spec || '';
+        row.style.display = ((!input || text.includes(input)) && (!spec || rowSpec === spec)) ? '' : 'none';
     });
 }
 </script>

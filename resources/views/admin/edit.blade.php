@@ -58,8 +58,8 @@
                 @endif
             </div>
             <div class="mb-6">
-                <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Change Resume (PDF)') }}</label>
-                <input type="file" name="cv" accept=".pdf"
+                <label class="block text-sm font-bold text-gray-700 mb-1">تغيير السيرة الذاتية (PDF أو Word أو صورة)</label>
+                <input type="file" name="cv" accept=".pdf,.doc,.docx,image/*"
                     class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
             </div>
 

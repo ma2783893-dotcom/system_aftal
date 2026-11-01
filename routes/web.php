@@ -214,11 +214,11 @@ Route::post('/add-employee', function (Request $request) {
         'email'         => 'required|email|unique:users,email',
         'specialization'=> 'required|string|max:255',
         'password'      => 'required|string|min:6',
-        'cv'            => 'nullable|file|mimes:pdf|max:10240',
+        'cv'            => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp,heic,heif|max:10240',
         'profile_photo' => 'nullable|image|max:5120',
     ], [
         'email.unique'       => 'هذا البريد الإلكتروني مستخدم لموظف آخر',
-        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون PDF أو Word أو صورة',
         'cv.max'             => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
         'profile_photo.image'=> 'الصورة الشخصية يجب أن تكون صورة',
         'profile_photo.max'  => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
@@ -316,11 +316,11 @@ Route::post('/update-employee/{id}', function (Request $request, $id) {
         'name'          => 'required|string|max:255',
         'email'         => 'required|email|unique:users,email,' . $id,
         'specialization'=> 'required|string|max:255',
-        'cv'            => 'nullable|file|mimes:pdf|max:10240',
+        'cv'            => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp,heic,heif|max:10240',
         'profile_photo' => 'nullable|image|max:5120',
     ], [
         'email.unique'       => 'هذا البريد الإلكتروني مستخدم لموظف آخر',
-        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.mimes'           => 'السيرة الذاتية يجب أن تكون PDF أو Word أو صورة',
         'cv.max'             => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
         'profile_photo.image'=> 'الصورة الشخصية يجب أن تكون صورة',
         'profile_photo.max'  => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
@@ -733,9 +733,9 @@ Route::get('/voucher/{id}/download', function ($id) {
 */
 
 Route::post('/employee/upload-cv', function (Request $request) {
-    $request->validate(['cv' => 'required|file|mimes:pdf|max:10240'], [
+    $request->validate(['cv' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp,heic,heif|max:10240'], [
         'cv.required' => 'اختر ملف السيرة الذاتية',
-        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون PDF أو Word أو صورة',
         'cv.max'      => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
     ]);
     $user = Auth::user();
@@ -753,9 +753,9 @@ Route::get('/admin/employees/{id}/cv/delete', fn ($id) => redirect('/profile/' .
 // رفع / حذف السيرة الذاتية لأي موظف من الإدارة
 Route::post('/admin/employees/{id}/cv', function (Request $request, $id) {
     if (!Auth::user()->hasPermission('edit_employee')) abort(403);
-    $request->validate(['cv' => 'required|file|mimes:pdf|max:10240'], [
+    $request->validate(['cv' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp,heic,heif|max:10240'], [
         'cv.required' => 'اختر ملف السيرة الذاتية',
-        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون ملف PDF',
+        'cv.mimes'    => 'السيرة الذاتية يجب أن تكون PDF أو Word أو صورة',
         'cv.max'      => 'حجم السيرة الذاتية يجب ألا يتجاوز 10 ميجابايت',
     ]);
     $emp = User::findOrFail($id);

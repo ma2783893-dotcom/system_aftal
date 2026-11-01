@@ -25,6 +25,8 @@ class ResumeController extends Controller
         }
 
         $name = 'السيرة الذاتية - ' . $employee->name . '.' . FileStore::extension($employee->cv, 'pdf');
+        // Word files and HEIC photos can't be shown by most browsers: send them as a download.
+        $inline   = $inline && FileStore::viewable($employee->cv);
         $response = FileStore::response($employee->cv, 'cv', $name, $inline);
 
         if ($response) {

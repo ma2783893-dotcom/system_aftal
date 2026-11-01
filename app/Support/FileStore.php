@@ -130,6 +130,13 @@ class FileStore
         }
     }
 
+    /** True when a browser can show the file itself (PDF or image); Word files are downloaded instead. */
+    public static function viewable(?string $ref): bool
+    {
+        $ext = self::extension($ref, '');
+        return in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'], true);
+    }
+
     /** Extension of the stored file, used to build a sensible download name. */
     public static function extension(?string $ref, string $fallback): string
     {

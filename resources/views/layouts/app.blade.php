@@ -10,6 +10,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        img, iframe, video { max-width: 100%; }
         body {
             font-family: 'Tajawal', sans-serif;
             background-color: #f3f4f6;
@@ -119,18 +121,18 @@
 
 
     <nav class="bg-primary text-white shadow-lg shadow-gray-200" style="position:relative; z-index:10;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-2">
+                <div class="flex items-center min-w-0">
                     <div class="flex-shrink-0">
-                        <a href="/" class="font-bold text-xl tracking-wide">جامعة الأفضل</a>
+                        <a href="/" class="font-bold text-base sm:text-xl tracking-wide whitespace-nowrap">جامعة الأفضل</a>
                     </div>
                 </div>
-                <div class="flex gap-4 items-center">
+                <div class="flex gap-2 sm:gap-4 items-center shrink-0">
 
                     {{-- Dark Mode Toggle Switch (auth only) --}}
                     @auth
-                    <label class="switch">
+                    <label class="switch hidden sm:inline-block">
                         <input type="checkbox" id="darkModeCheckbox">
                         <span class="slider"></span>
                     </label>
@@ -151,7 +153,7 @@
                     </div>
 
                     <div id="notifDropdown" style="display:none; position:absolute; top:64px;
-                         right:20px; background:white; color:#333; border-radius:12px;
+                         right:8px; max-width:calc(100vw - 16px); background:white; color:#333; border-radius:12px;
                          width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:999; padding:1rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                             <h4 style="color:#0a2540; font-weight:bold; margin:0;">🔔 الإشعارات</h4>
@@ -174,17 +176,17 @@
                     @endif
                     @endauth
 
-                    <div class="flex items-center rounded-md shrink-0 border-r border-white/20 pr-4 mr-4" dir="ltr">
-                        <a href="{{ route('lang.switch', 'ar') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'ar' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-l-md transition">Ar</a>
-                        <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-1 text-sm {{ app()->getLocale() == 'en' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-r-md transition">En</a>
+                    <div class="flex items-center rounded-md shrink-0 sm:border-r border-white/20 sm:pr-4 sm:mr-4" dir="ltr">
+                        <a href="{{ route('lang.switch', 'ar') }}" class="px-2 sm:px-3 py-1 text-sm {{ app()->getLocale() == 'ar' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-l-md transition">Ar</a>
+                        <a href="{{ route('lang.switch', 'en') }}" class="px-2 sm:px-3 py-1 text-sm {{ app()->getLocale() == 'en' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700' }} rounded-r-md transition">En</a>
                     </div>
                     @auth
-                        <span class="text-sm font-medium">{{ Auth::user()->name }}</span>
+                        <span class="text-sm font-medium hidden md:inline max-w-[12rem] truncate">{{ Auth::user()->name }}</span>
                         <a href="/change-password" title="تغيير كلمة المرور"
                            class="text-sm bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md transition">🔑</a>
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
                             @csrf
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm">{{ __('Logout') }}</button>
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm whitespace-nowrap">{{ __('Logout') }}</button>
                         </form>
                     @endauth
                 </div>

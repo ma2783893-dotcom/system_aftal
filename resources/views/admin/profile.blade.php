@@ -384,10 +384,12 @@
         @if($cvOk)
             <p style="color:#15803d; margin-bottom:10px; font-size:0.9rem;">✅ السيرة الذاتية مرفوعة</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                @if(\App\Support\FileStore::viewable($emp->cv))
                 <a href="{{ route('resume.view', $emp->id) }}" target="_blank"
                    style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
                     👁️ عرض
                 </a>
+                @endif
                 <a href="{{ route('resume.download', $emp->id) }}"
                    style="background:#3b82f6; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
                     📥 تحميل
@@ -414,9 +416,9 @@
         <form method="POST" action="{{ $isSelf && !$canManage ? '/employee/upload-cv' : '/admin/employees/' . $emp->id . '/cv' }}" enctype="multipart/form-data"
               onsubmit="return cvBeforeSubmit(this)">
             @csrf
-            <input type="file" name="cv" accept="application/pdf,.pdf" required
+            <input type="file" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" required
                    style="width:100%; border:1px solid #d1d5db; padding:8px; border-radius:8px; margin-bottom:10px; box-sizing:border-box; font-size:0.875rem;">
-            <p style="font-size:0.75rem; color:#94a3b8; margin:-4px 0 10px;">ملف PDF فقط، حتى 10 ميجابايت</p>
+            <p style="font-size:0.75rem; color:#94a3b8; margin:-4px 0 10px;">PDF أو Word أو صورة للسيرة الذاتية، حتى 10 ميجابايت. من الهاتف تقدر تختار من الملفات أو تصوّرها بالكاميرا.</p>
             <button type="submit" style="background:#2563eb; color:white; padding:9px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
                 📤 {{ $cvOk || $emp->cv ? 'استبدال السيرة الذاتية' : 'رفع السيرة الذاتية' }}
             </button>
@@ -426,7 +428,7 @@
             var input = form.querySelector('input[type=file]');
             var f = input && input.files && input.files[0];
             if (!f) { alert('اختر ملف السيرة الذاتية أولاً'); return false; }
-            if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { alert('السيرة الذاتية يجب أن تكون ملف PDF'); return false; }
+            if (!/\.(pdf|docx?|jpe?g|png|webp|heic|heif)$/i.test(f.name) && !/^image\//.test(f.type) && f.type !== 'application/pdf') { alert('السيرة الذاتية يجب أن تكون PDF أو Word أو صورة'); return false; }
             if (f.size > 10 * 1024 * 1024) { alert('حجم الملف ' + (f.size / 1048576).toFixed(1) + ' ميجابايت، والحد الأقصى 10 ميجابايت'); return false; }
             var btn = form.querySelector('button[type=submit]');
             btn.disabled = true; btn.innerHTML = '⏳ جاري الرفع...';
@@ -637,7 +639,7 @@
         </div>
         @endif
 
-        @if($emp->hasCvFile())
+        @if($emp->hasCvFile() && \App\Support\FileStore::extension($emp->cv, '') === 'pdf')
         <div class="hidden md:block">
             <h2 class="text-xl font-bold text-gray-800 mb-4">{{ __('Resume') }}</h2>
             <div class="border rounded-lg overflow-hidden" style="height:800px;">
