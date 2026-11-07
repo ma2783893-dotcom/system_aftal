@@ -18,6 +18,11 @@ class AttendanceGuard
     public const UNI_LNG      = 20.068791;
     public const MAX_DISTANCE = 50; // meters
 
+    public static function bindingEnabled(): bool
+    {
+        return filter_var(env('ATTENDANCE_BIND_DEVICE', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
     public static function distance(float $lat, float $lng): float
     {
         $R  = 6371000;
@@ -37,6 +42,12 @@ class AttendanceGuard
     {
         if (!EmployeeAccessGuard::isMobile($request->userAgent())) {
             return 'تسجيل الحضور والانصراف متاح من الهاتف المحمول فقط';
+        }
+
+        // ربط الحساب بهاتف واحد متوقف افتراضياً: أي هاتف يقدر يسجّل.
+        // لتفعيله من جديد أضف في Railway المتغير ATTENDANCE_BIND_DEVICE=true
+        if (!self::bindingEnabled()) {
+            return null;
         }
 
         $deviceId = (string) $request->input('device_id', '');

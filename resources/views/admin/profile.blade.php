@@ -70,10 +70,10 @@
             </div>
         @endif
         <p style="color:#9ca3af; font-size:0.75rem; margin-top:10px; text-align:center;">
-            📱 متاح من الهاتف المسجّل لحسابك فقط
+            📱 التسجيل متاح من الهاتف المحمول، ويجب السماح بتحديد الموقع
         </p>
 
-        @if(auth()->user()->role === 'admin' && $emp->role === 'employee')
+        @if(auth()->user()->role === 'admin' && $emp->role === 'employee' && \App\Support\AttendanceGuard::bindingEnabled())
             <div style="border-top:1px dashed #e5e7eb; margin-top:14px; padding-top:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                 <span style="font-size:0.82rem; color:#475569;">
                     📱 الهاتف المسجّل:
@@ -207,12 +207,43 @@
     }
 
     function onLocationError(err) {
-        const msgs = { 1: 'يجب السماح للموقع بالوصول لموقعك', 3: 'انتهت مهلة تحديد الموقع، حاول مرة أخرى' };
+        if (err.code === 1) { showLocationHelp(); return; }
+        const msgs = { 2: 'تعذر تحديد موقعك. شغّل خدمة الموقع (GPS) في الهاتف وحاول مرة أخرى', 3: 'انتهت مهلة تحديد الموقع. اقترب من نافذة أو مكان مفتوح وحاول مرة أخرى' };
         showLocationError(msgs[err.code] || 'تعذر تحديد موقعك');
     }
 
     function showLocationError(msg) {
-        document.getElementById('locationStatus').innerHTML = `<p style="color:#dc2626;font-size:1.5rem;">❌</p><p style="color:#dc2626;">${msg}</p>`;
+        document.getElementById('locationStatus').innerHTML = `<p style="color:#dc2626;font-size:1.5rem;">❌</p><p style="color:#dc2626;">${msg}</p>
+            <button onclick="startAttendance(attMode)" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">🔄 حاول مرة أخرى</button>`;
+        document.getElementById('locationInfo').classList.remove('hidden');
+    }
+
+    // الموقع مرفوض من المتصفح أو من إعدادات الهاتف: اشرح الخطوات حسب نوع الهاتف والمتصفح
+    function showLocationHelp() {
+        const ua = navigator.userAgent;
+        const ios = /iPhone|iPad|iPod/i.test(ua);
+        const app = /CriOS|Chrome/i.test(ua) ? 'Chrome' : /FxiOS|Firefox/i.test(ua) ? 'Firefox' : /EdgiOS|EdgA|Edg\//i.test(ua) ? 'Edge' : (ios ? 'Safari' : 'المتصفح');
+        let steps;
+        if (ios) {
+            steps = app === 'Safari'
+                ? ['افتح <b>الإعدادات</b> ← <b>الخصوصية والأمن</b> ← <b>خدمات الموقع</b> وتأكد إنها مفعّلة.',
+                   'في نفس الصفحة انزل لـ <b>مواقع Safari</b> واختر <b>أثناء الاستخدام</b> وفعّل <b>الموقع الدقيق</b>.',
+                   'ارجع لهنا، واضغط <b>aA</b> بجانب الرابط ← <b>إعدادات الموقع الإلكتروني</b> ← <b>الموقع</b> ← <b>سماح</b>.',
+                   'حدّث الصفحة واضغط تسجيل مرة أخرى، واختر <b>سماح</b> لما يسألك.']
+                : ['افتح <b>الإعدادات</b> ← <b>الخصوصية والأمن</b> ← <b>خدمات الموقع</b> وتأكد إنها مفعّلة.',
+                   'في نفس الصفحة اختر تطبيق <b>' + app + '</b> ← <b>أثناء استخدام التطبيق</b> وفعّل <b>الموقع الدقيق</b>.',
+                   'ارجع لهنا، حدّث الصفحة واضغط تسجيل مرة أخرى، واختر <b>سماح</b> لما يسألك.'];
+        } else {
+            steps = ['اسحب من أعلى الشاشة وتأكد إن <b>الموقع / GPS</b> مفعّل.',
+                     'اضغط على <b>🔒 القفل</b> بجانب الرابط فوق ← <b>الأذونات</b> ← <b>الموقع</b> ← <b>سماح</b>.',
+                     'لو ما ظهر: <b>الإعدادات</b> ← <b>التطبيقات</b> ← <b>' + app + '</b> ← <b>الأذونات</b> ← <b>الموقع</b> ← <b>السماح أثناء الاستخدام</b>.',
+                     'ارجع لهنا، حدّث الصفحة واضغط تسجيل مرة أخرى، واختر <b>سماح</b>.'];
+        }
+        document.getElementById('locationStatus').innerHTML =
+            `<p style="font-size:1.6rem;margin:0;">📍</p>
+             <p style="color:#b91c1c;font-weight:700;margin:6px 0 10px;">الموقع مرفوض، والتسجيل يحتاج تحديد موقعك</p>
+             <ol style="text-align:right;font-size:0.88rem;line-height:1.9;color:#334155;padding-right:18px;margin:0;">${steps.map(s => '<li>' + s + '</li>').join('')}</ol>
+             <button onclick="location.reload()" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">🔄 حدّثت الإعدادات، حاول الآن</button>`;
         document.getElementById('locationInfo').classList.remove('hidden');
     }
 

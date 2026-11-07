@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html translate="no" lang="ar" dir="rtl">
 <head>
+    <meta name="google" content="notranslate">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>جامعة الأفضل الدولية - {{ $title }}</title>
