@@ -39,7 +39,10 @@ Route::get('/photo/{id}', function ($id) {
 
 // عرض صفحة الدخول
 Route::get('/login', function () {
-    return view('auth.login');
+    if (Auth::check()) {
+        return redirect('/');
+    }
+    return response()->view('auth.login')->header('Cache-Control', 'no-store');
 })->name('login');
 
 // عملية الدخول الفعلية
@@ -49,7 +52,8 @@ Route::post('/login', function (Request $request) {
         'password' => 'required',
     ]);
 
-    if (Auth::attempt($credentials)) {
+    // remember = true: يبقى المستخدم داخل حتى يضغط "خروج" بنفسه (كوكي تذكّر طويلة المدة)
+    if (Auth::attempt($credentials, true)) {
         $request->session()->regenerate();
         return redirect()->intended('/');
     }

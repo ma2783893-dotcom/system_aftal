@@ -271,12 +271,19 @@
             },
             body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng, device_id: getDeviceId() })
         })
-        .then(r => r.json().catch(() => ({ success: false, message: 'HTTP ' + r.status })))
+        .then(r => {
+            if (r.status === 419 || r.status === 401) {
+                alert('انتهت صلاحية الصفحة، سيتم تحديثها. اضغط التسجيل مرة أخرى بعد التحديث.');
+                location.reload();
+                return { success: false, silent: true };
+            }
+            return r.json().catch(() => ({ success: false, message: 'HTTP ' + r.status }));
+        })
         .then(data => {
             if (data.success) {
                 alert('✅ ' + data.message + '\n📅 ' + data.date + '  ⏰ ' + data.time + (data.hours !== undefined ? '\n⏱️ مدة الدوام: ' + data.hours + ' ساعة' : ''));
                 closeModal(); location.reload();
-            } else {
+            } else if (!data.silent) {
                 alert('❌ ' + (data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = label;
             }
         })

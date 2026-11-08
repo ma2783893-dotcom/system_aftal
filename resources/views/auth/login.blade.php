@@ -28,12 +28,12 @@
             @csrf
             <div style="margin-bottom:1.5rem;">
                 <label style="display:block; font-size:0.875rem; font-weight:700; color:#374151; margin-bottom:0.5rem;">البريد الإلكتروني</label>
-                <input type="email" name="email" required placeholder="البريد الإلكتروني" value="{{ old('email') }}"
+                <input type="email" name="email" required autocomplete="username" inputmode="email" autocapitalize="none" placeholder="البريد الإلكتروني" value="{{ old('email') }}"
                     style="width:100%; padding:0.75rem 1rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:0.75rem; outline:none; font-family:inherit; box-sizing:border-box;">
             </div>
             <div style="margin-bottom:2rem;">
                 <label style="display:block; font-size:0.875rem; font-weight:700; color:#374151; margin-bottom:0.5rem;">كلمة المرور</label>
-                <input type="password" name="password" required placeholder="••••••••"
+                <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••"
                     style="width:100%; padding:0.75rem 1rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:0.75rem; outline:none; font-family:inherit; box-sizing:border-box;">
             </div>
             <button type="submit"
