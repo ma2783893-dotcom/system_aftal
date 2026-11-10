@@ -40,14 +40,24 @@
                 🔐 بطاقات الدخول
             </a>
             @endif
-@if(auth()->user()->role === 'admin')
-                        <a href="/attendance/calendar"
+            @if(auth()->user()->hasPermission('view_reports'))
+            <a href="/attendance/report"
+               style="background:#15803d; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                🕒 تقرير الحضور والساعات
+            </a>
+            @endif
+            @if(auth()->user()->role === 'admin')
+            <a href="/attendance/calendar"
                style="background:#0891b2; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📅 {{ __('Attendance Calendar') }}
             </a>
+            <a href="/admin/attendance-settings"
+               style="background:#0f766e; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                📍 نطاق الجامعة
+            </a>
             @endif
-@if(auth()->user()->hasPermission('view_reports'))
-                        <a href="/reports/monthly"
+            @if(auth()->user()->hasPermission('view_reports'))
+            <a href="/reports/monthly"
                style="background:#7c3aed; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📊 {{ __('Monthly Report') }}
             </a>

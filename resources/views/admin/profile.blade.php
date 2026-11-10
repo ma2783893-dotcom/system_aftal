@@ -127,10 +127,11 @@
     </div>
 
     <script>
-    const UNIVERSITY_LAT = {{ \App\Support\AttendanceGuard::UNI_LAT }};
-    const UNIVERSITY_LNG = {{ \App\Support\AttendanceGuard::UNI_LNG }};
-    const MAX_DISTANCE   = {{ \App\Support\AttendanceGuard::MAX_DISTANCE }};
-    let userLat = null, userLng = null, attMode = 'in';
+    const UNIVERSITY_LAT = {{ \App\Support\AttendanceGuard::lat() }};
+    const UNIVERSITY_LNG = {{ \App\Support\AttendanceGuard::lng() }};
+    const MAX_DISTANCE   = {{ \App\Support\AttendanceGuard::radius() }};
+    const GPS_TOLERANCE  = {{ \App\Support\AttendanceGuard::MAX_GPS_TOLERANCE }};
+    let userLat = null, userLng = null, userAcc = null, attMode = 'in';
 
     // Persistent per-phone identifier (localStorage + 10-year cookie as backup)
     function getDeviceId() {
@@ -175,6 +176,7 @@
         userLat = pos.coords.latitude;
         userLng = pos.coords.longitude;
         const accuracy = pos.coords.accuracy;
+        userAcc = accuracy;
         const distance = calcDistance(userLat, userLng, UNIVERSITY_LAT, UNIVERSITY_LNG);
 
         document.getElementById('locationStatus').classList.add('hidden');
@@ -190,7 +192,7 @@
         confBtn.innerHTML = attMode === 'in' ? '✅ تأكيد الحضور' : '✅ تأكيد الانصراف';
         confBtn.style.background = attMode === 'in' ? '#16a34a' : '#dc2626';
 
-        if (distance <= MAX_DISTANCE) {
+        if (distance <= MAX_DISTANCE + Math.min(accuracy || 0, GPS_TOLERANCE)) {
             distEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;padding:12px;border-radius:10px;text-align:center;">
                 <p style="color:#15803d;font-weight:700;font-size:1.05rem;margin:0;">✅ أنت داخل النطاق</p>
                 <p style="color:#16a34a;margin:4px 0 0;">المسافة: ${distance.toFixed(0)} متر | دقة GPS: ±${accuracy.toFixed(0)} متر</p>
@@ -269,7 +271,7 @@
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
-            body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng, device_id: getDeviceId() })
+            body: JSON.stringify({ employee_id: {{ $emp->id }}, latitude: userLat, longitude: userLng, accuracy: userAcc, device_id: getDeviceId() })
         })
         .then(r => {
             if (r.status === 419 || r.status === 401) {

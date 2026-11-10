@@ -3,11 +3,15 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
         <h1 class="text-3xl font-bold text-gray-800">📅 {{ __('Attendance Calendar') }}</h1>
-        <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
-            ← {{ __('Back to Dashboard') }}
-        </a>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="/attendance/report?{{ http_build_query(['employee_id' => request('employee_id'), 'from' => \Carbon\Carbon::parse($selectedMonth)->startOfMonth()->format('Y-m-d'), 'to' => \Carbon\Carbon::parse($selectedMonth)->endOfMonth()->format('Y-m-d')]) }}"
+               style="background:#15803d; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">🕒 تقرير هذا الشهر</a>
+            <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
+                ← {{ __('Back to Dashboard') }}
+            </a>
+        </div>
     </div>
 
     {{-- Employee Selector --}}
@@ -41,7 +45,7 @@
 
         {{-- Day Headers --}}
         <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px;">
-            @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $d)
+            @foreach(app()->getLocale() === 'ar' ? ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $d)
                 <div style="text-align:center; font-weight:bold; font-size:0.75rem; color:#64748b; padding:6px;">{{ $d }}</div>
             @endforeach
         </div>

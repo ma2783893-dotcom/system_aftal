@@ -26,6 +26,7 @@ class Attendance extends Model
         'check_out_distance_meters',
         'check_out_verified',
         'device_id',
+        'auto_checkout',
     ];
 
     public function employee()

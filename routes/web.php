@@ -120,6 +120,7 @@ Route::post('/change-password', function (Request $request) {
 
 // الصفحة الرئيسية - عرض الموظفين
 Route::get('/', function () {
+    \App\Support\AttendanceGuard::autoCloseOpenDays();
     if (Auth::user()->role === 'employee') {
         return redirect('/profile/' . Auth::id());
     }
@@ -143,6 +144,7 @@ Route::get('/', function () {
 
 // ملف الموظف الشخصي
 Route::get('/profile/{id}', function ($id) {
+    \App\Support\AttendanceGuard::autoCloseOpenDays();
     if (\Illuminate\Support\Facades\Auth::user()->role === 'employee' && \Illuminate\Support\Facades\Auth::id() != $id) {
         abort(403, 'Unauthorized. You can only view your own profile.');
     }
@@ -415,6 +417,7 @@ Route::post('/attendance/check-in', function (Request $request) {
         'latitude'    => 'required|numeric|between:-90,90',
         'longitude'   => 'required|numeric|between:-180,180',
         'device_id'   => 'nullable|string|max:64',
+        'accuracy'    => 'nullable|numeric|min:0|max:100000',
     ]);
 
     $empId    = (int) $request->employee_id;
@@ -437,7 +440,7 @@ Route::post('/attendance/check-in', function (Request $request) {
     }
 
     $distance = \App\Support\AttendanceGuard::distance((float) $request->latitude, (float) $request->longitude);
-    $verified = $distance <= \App\Support\AttendanceGuard::MAX_DISTANCE;
+    $verified = \App\Support\AttendanceGuard::within($distance, $request->input('accuracy'));
     $now      = now();
 
     try {
@@ -487,6 +490,7 @@ Route::post('/attendance/check-out', function (Request $request) {
         'latitude'    => 'required|numeric|between:-90,90',
         'longitude'   => 'required|numeric|between:-180,180',
         'device_id'   => 'nullable|string|max:64',
+        'accuracy'    => 'nullable|numeric|min:0|max:100000',
     ]);
 
     $empId  = (int) $request->employee_id;
@@ -511,7 +515,7 @@ Route::post('/attendance/check-out', function (Request $request) {
     }
 
     $distance = \App\Support\AttendanceGuard::distance((float) $request->latitude, (float) $request->longitude);
-    $verified = $distance <= \App\Support\AttendanceGuard::MAX_DISTANCE;
+    $verified = \App\Support\AttendanceGuard::within($distance, $request->input('accuracy'));
     $now      = now();
 
     $checkIn = Carbon::parse($att->date)->setTimeFromTimeString($att->check_in_time ?? $now->format('H:i:s'));
@@ -587,6 +591,7 @@ Route::get('/attendance/detail/{id}', function ($id) {
 
 // Attendance Calendar
 Route::get('/attendance/calendar', function (Request $request) {
+    \App\Support\AttendanceGuard::autoCloseOpenDays();
     if (Auth::user()->role !== 'admin') abort(403);
 
     $employees     = User::where('role', 'employee')->get();
@@ -849,3 +854,83 @@ Route::post('/admin/credentials', function (Request $request) {
         ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
 })->middleware('auth');
 
+
+/*
+|--------------------------------------------------------------------------
+| 9. إعدادات الحضور (نطاق الجامعة على الخريطة) - للمدير فقط
+|--------------------------------------------------------------------------
+*/
+Route::get('/admin/attendance-settings', function () {
+    if (Auth::user()->role !== 'admin') abort(403);
+    return view('admin.attendance-settings', [
+        'lat'    => \App\Support\AttendanceGuard::lat(),
+        'lng'    => \App\Support\AttendanceGuard::lng(),
+        'radius' => \App\Support\AttendanceGuard::radius(),
+        'workdayEnd'   => \App\Support\AttendanceGuard::workdayEnd(),
+        'autoCheckout' => \App\Support\AttendanceGuard::autoCheckoutEnabled(),
+    ]);
+})->middleware('auth');
+
+Route::post('/admin/attendance-settings', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $data = $request->validate([
+        'radius' => 'required|integer|min:20|max:5000',
+        'lat'    => 'required|numeric|between:-90,90',
+        'lng'    => 'required|numeric|between:-180,180',
+        'workday_end' => ['required', 'regex:/^\d{2}:\d{2}$/'],
+    ], [
+        'workday_end.*' => 'وقت نهاية الدوام غير صحيح',
+        'radius.min' => 'أقل نطاق مسموح 20 متر',
+        'radius.max' => 'أكبر نطاق مسموح 5000 متر',
+        'lat.*'      => 'خط العرض غير صحيح',
+        'lng.*'      => 'خط الطول غير صحيح',
+    ]);
+    \App\Support\Settings::set('attendance.radius', (int) $data['radius']);
+    \App\Support\Settings::set('attendance.lat', (string) round((float) $data['lat'], 7));
+    \App\Support\Settings::set('attendance.lng', (string) round((float) $data['lng'], 7));
+    \App\Support\Settings::set('attendance.workday_end', substr($data['workday_end'], 0, 5));
+    \App\Support\Settings::set('attendance.auto_checkout', $request->boolean('auto_checkout') ? '1' : '0');
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'attendance_settings',
+            'target'     => 'نطاق الحضور',
+            'details'    => "Radius {$data['radius']}m at {$data['lat']},{$data['lng']}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+    return back()->with('success', 'تم حفظ نطاق الحضور ✅');
+})->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| 10. تقرير الحضور: عرض + تصدير Excel + طباعة/PDF (لكل الموظفين أو موظف واحد)
+|--------------------------------------------------------------------------
+*/
+Route::get('/attendance/report', function (Request $request) {
+    \App\Support\AttendanceGuard::autoCloseOpenDays();
+    if (!Auth::user()->hasPermission('view_reports')) abort(403);
+
+    $report    = \App\Support\AttendanceReport::fromRequest($request);
+    $employees = User::where('role', 'employee')->orderBy('name')->get();
+    $format    = $request->input('format');
+
+    if ($format === 'xlsx') {
+        if (!class_exists(\ZipArchive::class)) {
+            return back()->with('flash_error', 'تصدير Excel غير متاح على السيرفر، استخدم الطباعة / PDF');
+        }
+        $tmp = tempnam(sys_get_temp_dir(), 'att') . '.xlsx';
+        $report->toXlsx($tmp);
+        $file = $report->title() . ' (' . $report->from->format('Y-m-d') . ' - ' . $report->to->format('Y-m-d') . ').xlsx';
+        return response()->download($tmp, str_replace(['/', '\\'], '-', $file), [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    if ($format === 'print') {
+        return view('attendance.report-print', compact('report'));
+    }
+
+    return view('attendance.report', compact('report', 'employees'));
+})->middleware('auth');
