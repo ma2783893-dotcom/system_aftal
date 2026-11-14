@@ -52,11 +52,28 @@ Route::post('/login', function (Request $request) {
         'password' => 'required',
     ]);
 
+    // البريد بدون فرق بين الحروف الكبيرة والصغيرة (Esraa@ = esraa@)
+    $stored = User::whereRaw('LOWER(email) = ?', [mb_strtolower(trim($credentials['email']))])->value('email');
+    if ($stored) {
+        $credentials['email'] = $stored;
+    }
+
     // remember = true: يبقى المستخدم داخل حتى يضغط "خروج" بنفسه (كوكي تذكّر طويلة المدة)
-    if (Auth::attempt($credentials, true)) {
+    $ok = Auth::attempt($credentials, true);
+
+    // كلمة سر قديمة محفوظة بأرقام عربية (٠١٢...): جرّبها كما كُتبت، ثم احفظها بأرقام عادية
+    $raw = $request->attributes->get('raw_password');
+    if (!$ok && $raw !== null && Auth::attempt(['email' => $credentials['email'], 'password' => $raw], true)) {
+        $ok = true;
+        Auth::user()->forceFill(['password' => Hash::make($credentials['password'])])->save();
+    }
+
+    if ($ok) {
         $request->session()->regenerate();
         return redirect()->intended('/');
     }
+
+    \Log::info('Failed login', ['email' => $credentials['email'], 'ip' => $request->ip()]);
 
     return back()->withErrors([
         'email' => 'البيانات المدخلة غير صحيحة.',

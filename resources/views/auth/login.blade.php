@@ -33,8 +33,14 @@
             </div>
             <div style="margin-bottom:2rem;">
                 <label style="display:block; font-size:0.875rem; font-weight:700; color:#374151; margin-bottom:0.5rem;">كلمة المرور</label>
-                <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••"
-                    style="width:100%; padding:0.75rem 1rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:0.75rem; outline:none; font-family:inherit; box-sizing:border-box;">
+                <div style="position:relative;">
+                    <input type="password" name="password" id="pw" required autocomplete="current-password" placeholder="••••••••"
+                        style="width:100%; padding:0.75rem 3rem 0.75rem 1rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:0.75rem; outline:none; font-family:inherit; box-sizing:border-box;">
+                    <button type="button" aria-label="إظهار كلمة المرور"
+                        onclick="var p=document.getElementById('pw'); p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? '👁️' : '🙈';"
+                        style="position:absolute; top:50%; right:0.6rem; transform:translateY(-50%); background:none; border:none; font-size:1.15rem; cursor:pointer; padding:4px;">👁️</button>
+                </div>
+                <p style="font-size:0.75rem; color:#94a3b8; margin:6px 0 0;">اضغط 👁️ لترى ما تكتبه وتتأكد منه</p>
             </div>
             <button type="submit"
                 style="width:100%; background:#0a2540; color:white; font-weight:700; padding:0.875rem; border-radius:0.75rem; border:none; cursor:pointer; font-family:inherit; font-size:1rem; transition: background 0.3s ease;">

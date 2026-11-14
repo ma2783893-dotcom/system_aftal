@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\LanguageSwitcher::class,
             \App\Http\Middleware\EmployeeAccessGuard::class,
+            \App\Http\Middleware\NormalizeDigits::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
