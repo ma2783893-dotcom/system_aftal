@@ -72,7 +72,7 @@
                      style="cursor:pointer; font-size:0.68rem; margin-top:3px; padding:2px 4px; border-radius:4px;
                             background:{{ $att->location_verified ? '#bbf7d0' : '#fed7aa' }};
                             color:{{ $att->location_verified ? '#15803d' : '#c2410c' }};"
-                     title="{{ $att->employee->name ?? '' }} — حضور {{ $att->check_in_time }}{{ $att->check_out_time ? ' | انصراف ' . $att->check_out_time : '' }}">
+                     title="{{ $att->employee->name ?? '' }} — {{ $att->check_in_time ? 'حضور ' . $att->check_in_time : 'غياب' }}{{ $att->check_out_time ? ' | انصراف ' . $att->check_out_time : '' }}{{ $att->note ? ' | ' . $att->note : '' }}">
                     {{ $att->location_verified ? '📍' : '⚠️' }}
                     {{ Str::limit($att->employee->name ?? '—', 10) }}
                     @if($att->check_in_time)

@@ -27,6 +27,9 @@ class Attendance extends Model
         'check_out_verified',
         'device_id',
         'auto_checkout',
+        'note',
+        'manual',
+        'edited_by',
     ];
 
     public function employee()

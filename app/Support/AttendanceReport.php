@@ -56,6 +56,7 @@ class AttendanceReport
 
         $this->rows = $records->map(function ($a) {
             $hours = $a->check_out_time ? (float) $a->hours_worked : 0.0;
+            $present = (bool) $a->check_in_time;
             return [
                 'employee_id'    => $a->employee_id,
                 'name'           => $a->employee->name,
@@ -67,6 +68,9 @@ class AttendanceReport
                 'in_ok'          => (bool) $a->location_verified,
                 'out_ok'         => $a->check_out_time && !$a->auto_checkout ? (bool) $a->check_out_verified : null,
                 'auto'           => (bool) ($a->auto_checkout ?? false),
+                'present'        => $present,
+                'note'           => $a->note,
+                'manual'         => (bool) ($a->manual ?? false),
             ];
         });
 
@@ -76,7 +80,8 @@ class AttendanceReport
             : User::where('role', 'employee')->orderBy('name')->get();
 
         $this->summary = $people->map(function ($u) {
-            $mine = $this->rows->where('employee_id', $u->id);
+            $all  = $this->rows->where('employee_id', $u->id);
+            $mine = $all->where('present', true);
             return [
                 'name'           => $u->name,
                 'specialization' => $u->specialization,
@@ -85,6 +90,7 @@ class AttendanceReport
                 'no_out'         => $mine->whereNull('out')->count(),
                 'out_of_range'   => $mine->filter(fn ($r) => !$r['in_ok'] || $r['out_ok'] === false)->count(),
                 'auto'           => $mine->where('auto', true)->count(),
+                'notes'          => $all->filter(fn ($r) => $r['note'])->count(),
             ];
         });
 
@@ -120,19 +126,22 @@ class AttendanceReport
         $summary[] = [];
         $summary[] = ['الفترة: ' . $this->period()];
 
-        $detail = [['الاسم', 'الصفة', 'التاريخ', 'اليوم', 'وقت الحضور', 'وقت الانصراف', 'الساعات', 'الساعات (س:د)', 'موقع الحضور', 'موقع الانصراف']];
+        $detail = [['الاسم', 'الصفة', 'التاريخ', 'اليوم', 'وقت الحضور', 'وقت الانصراف', 'الساعات', 'الساعات (س:د)', 'موقع الحضور', 'موقع الانصراف', 'ملاحظة']];
         foreach ($this->rows as $r) {
             $detail[] = [
                 $r['name'], $r['specialization'], $r['date']->format('Y-m-d'), $days[$r['date']->format('l')] ?? '',
-                $r['in'] ?? '', $r['out'] ? ($r['out'] . ($r['auto'] ? ' (تلقائي)' : '')) : 'لم يسجّل انصراف', (float) $r['hours'], self::hm($r['hours']),
-                $r['in_ok'] ? 'داخل النطاق' : 'خارج النطاق',
+                $r['present'] ? ($r['in'] ?? '') : 'غياب',
+                $r['present'] ? ($r['out'] ? ($r['out'] . ($r['auto'] ? ' (تلقائي)' : '') . ($r['manual'] ? ' (الإدارة)' : '')) : 'لم يسجّل انصراف') : '',
+                (float) $r['hours'], self::hm($r['hours']),
+                $r['present'] ? ($r['in_ok'] ? 'داخل النطاق' : 'خارج النطاق') : '',
                 $r['out_ok'] === null ? '' : ($r['out_ok'] ? 'داخل النطاق' : 'خارج النطاق'),
+                (string) $r['note'],
             ];
         }
 
         (new SimpleXlsx())
             ->addSheet('الملخص', $summary, [28, 18, 13, 15, 14, 17, 14, 19])
-            ->addSheet('التفاصيل', $detail, [28, 18, 13, 11, 12, 16, 10, 13, 14, 14])
+            ->addSheet('التفاصيل', $detail, [28, 18, 13, 11, 12, 20, 10, 13, 14, 14, 34])
             ->save($path);
     }
 }

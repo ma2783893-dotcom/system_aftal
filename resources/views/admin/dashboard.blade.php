@@ -51,6 +51,10 @@
                style="background:#0891b2; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📅 {{ __('Attendance Calendar') }}
             </a>
+            <a href="/admin/attendance-notes"
+               style="background:#9333ea; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                📝 ملاحظات واستثناءات
+            </a>
             <a href="/admin/attendance-settings"
                style="background:#0f766e; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 📍 نطاق الجامعة

@@ -47,7 +47,7 @@
     {{-- Totals --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
-            <div style="font-size:1.6rem; font-weight:800; color:#0a2540;">{{ $report->rows->count() }}</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#0a2540;">{{ $report->rows->where('present', true)->count() }}</div>
             <div style="color:#64748b; font-size:0.85rem;">يوم حضور مسجّل</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
@@ -100,13 +100,16 @@
             <table style="width:100%; border-collapse:collapse; font-size:0.88rem; min-width:640px;">
                 <thead><tr style="background:#f1f5f9; text-align:right;">
                     <th style="padding:9px;">الاسم</th><th style="padding:9px;">التاريخ</th><th style="padding:9px;">الحضور</th>
-                    <th style="padding:9px;">الانصراف</th><th style="padding:9px;">الساعات</th><th style="padding:9px;">الموقع</th>
+                    <th style="padding:9px;">الانصراف</th><th style="padding:9px;">الساعات</th><th style="padding:9px;">الموقع</th><th style="padding:9px;">ملاحظة</th>
                 </tr></thead>
                 <tbody>
                 @foreach($report->rows as $r)
                     <tr style="border-top:1px solid #f1f5f9;">
                         <td style="padding:7px 9px;">{{ $r['name'] }}</td>
                         <td style="padding:7px 9px; white-space:nowrap;">{{ $r['date']->format('d/m/Y') }}</td>
+                        @if(!$r['present'])
+                        <td style="padding:7px 9px; color:#64748b;" colspan="4">غياب / لم يسجّل حضور</td>
+                        @else
                         <td style="padding:7px 9px;">{{ $r['in'] ?? '—' }}</td>
                         <td style="padding:7px 9px; color:{{ $r['out'] ? 'inherit' : '#b45309' }};">{{ $r['out'] ?? 'لم يسجّل' }}@if($r['auto']) <span style="font-size:0.75em; color:#7c3aed;">(تلقائي)</span>@endif</td>
                         <td style="padding:7px 9px; font-weight:700;">{{ R::hm($r['hours']) }}</td>
@@ -114,6 +117,8 @@
                             {{ $r['in_ok'] ? '✅' : '⚠️' }} حضور
                             @if($r['out_ok'] !== null) · {{ $r['out_ok'] ? '✅' : '⚠️' }} انصراف @endif
                         </td>
+                        @endif
+                        <td style="padding:7px 9px; font-size:0.82rem; color:#334155;">{{ $r['note'] }}@if($r['manual']) <span style="color:#7c3aed; font-size:0.72rem;">(الإدارة)</span>@endif</td>
                     </tr>
                 @endforeach
                 </tbody>

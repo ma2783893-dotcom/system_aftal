@@ -20,8 +20,16 @@
     @endphp
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
         <p style="text-align:center; color:#0a2540; font-weight:700; margin:0 0 12px;">📅 {{ $todayLabel }}</p>
+        @if(auth()->user()->role === 'admin' && $emp->role === 'employee')
+            <p style="text-align:center; margin:-4px 0 12px;">
+                <a href="/admin/attendance-notes?employee_id[]={{ $emp->id }}" style="color:#7c3aed; font-weight:700; font-size:0.88rem;">📝 تسجيل خروج بساعة معيّنة / إضافة ملاحظة لهذا الموظف</a>
+            </p>
+        @endif
+        @if($todayAttendance && $todayAttendance->note)
+            <p style="text-align:center; background:#faf5ff; color:#6b21a8; border-radius:8px; padding:6px 10px; font-size:0.88rem; margin:0 0 10px;">🗒️ {{ $todayAttendance->note }}</p>
+        @endif
 
-        @if($todayAttendance)
+        @if($todayAttendance && $todayAttendance->check_in_time)
             <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px; margin-bottom:10px;">
                 <span style="font-size:1.6rem;">✅</span>
                 <div>

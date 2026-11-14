@@ -45,7 +45,7 @@
             <img src="{{ asset('assets/logo-print.png') }}" alt="" onerror="this.style.display='none'">
             <div>
                 <h1>جامعة الأفضل الدولية — {{ $report->title() }}</h1>
-                <div class="sub">الفترة: {{ $report->period() }} · عدد أيام الحضور: {{ $report->rows->count() }} · إجمالي الساعات: {{ R::hm($report->totalHours) }} ({{ number_format($report->totalHours, 2) }})</div>
+                <div class="sub">الفترة: {{ $report->period() }} · عدد أيام الحضور: {{ $report->rows->where('present', true)->count() }} · إجمالي الساعات: {{ R::hm($report->totalHours) }} ({{ number_format($report->totalHours, 2) }})</div>
             </div>
         </div>
 
@@ -73,15 +73,21 @@
         @if($report->rows->isNotEmpty())
         <h2>التفاصيل اليومية</h2>
         <table>
-            <thead><tr><th>الاسم</th><th>التاريخ</th><th>الحضور</th><th>الانصراف</th><th>الساعات</th><th>موقع الحضور</th><th>موقع الانصراف</th></tr></thead>
+            <thead><tr><th>الاسم</th><th>التاريخ</th><th>الحضور</th><th>الانصراف</th><th>الساعات</th><th>موقع الحضور</th><th>موقع الانصراف</th><th>ملاحظة</th></tr></thead>
             <tbody>
             @foreach($report->rows as $r)
                 <tr>
-                    <td>{{ $r['name'] }}</td><td>{{ $r['date']->format('d/m/Y') }}</td><td>{{ $r['in'] ?? '—' }}</td>
+                    <td>{{ $r['name'] }}</td><td>{{ $r['date']->format('d/m/Y') }}</td>
+                    @if(!$r['present'])
+                    <td colspan="5">غياب / لم يسجّل حضور</td>
+                    @else
+                    <td>{{ $r['in'] ?? '—' }}</td>
                     <td class="{{ $r['out'] ? '' : 'warn' }}">{{ $r['out'] ?? 'لم يسجّل' }}@if($r['auto']) <span style="font-size:0.75em; color:#7c3aed;">(تلقائي)</span>@endif</td>
                     <td>{{ R::hm($r['hours']) }}</td>
                     <td>{{ $r['in_ok'] ? 'داخل النطاق' : 'خارج النطاق' }}</td>
                     <td>{{ $r['out_ok'] === null ? '—' : ($r['out_ok'] ? 'داخل النطاق' : 'خارج النطاق') }}</td>
+                    @endif
+                    <td>{{ $r['note'] }}</td>
                 </tr>
             @endforeach
             </tbody>

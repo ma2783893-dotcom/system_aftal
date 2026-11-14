@@ -452,7 +452,8 @@ Route::post('/attendance/check-in', function (Request $request) {
     }
 
     $today = now()->toDateString();
-    if (Attendance::where('employee_id', $empId)->whereDate('date', $today)->exists()) {
+    $existing = Attendance::where('employee_id', $empId)->whereDate('date', $today)->first();
+    if ($existing && $existing->check_in_time) {
         return response()->json(['success' => false, 'message' => 'تم تسجيل حضورك مسبقاً اليوم']);
     }
 
@@ -461,7 +462,12 @@ Route::post('/attendance/check-in', function (Request $request) {
     $now      = now();
 
     try {
+        // a note-only day added by the administration (e.g. "إجازة") is turned into a real attendance
+        if ($existing) {
+            $existing->delete();
+        }
         Attendance::create([
+            'note'              => $existing->note ?? null,
             'employee_id'       => $empId,
             'date'              => $today,
             'hours_worked'      => 0,
@@ -524,7 +530,7 @@ Route::post('/attendance/check-out', function (Request $request) {
     }
 
     $att = Attendance::where('employee_id', $empId)->whereDate('date', now()->toDateString())->first();
-    if (!$att) {
+    if (!$att || !$att->check_in_time) {
         return response()->json(['success' => false, 'message' => 'لم يتم تسجيل حضورك اليوم، سجّل الحضور أولاً']);
     }
     if ($att->check_out_time) {
@@ -950,4 +956,116 @@ Route::get('/attendance/report', function (Request $request) {
     }
 
     return view('attendance.report', compact('report', 'employees'));
+})->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| 11. ملاحظات واستثناءات الحضور (المدير يسجّل خروج/حضور بساعة معيّنة أو ملاحظة ليوم)
+|--------------------------------------------------------------------------
+*/
+Route::get('/admin/attendance-notes', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $employees = User::where('role', 'employee')->orderBy('name')->get();
+    $entries = Attendance::with('employee')
+        ->where(fn ($q) => $q->where('manual', true)->orWhereNotNull('note'))
+        ->whereDate('date', '>=', now()->subDays(90)->toDateString())
+        ->orderByDesc('date')->orderByDesc('updated_at')->limit(300)->get()
+        ->filter(fn ($a) => $a->employee);
+    return view('admin.attendance-notes', [
+        'employees' => $employees,
+        'entries'   => $entries,
+        'preselect' => array_map('intval', (array) $request->input('employee_id', [])),
+    ]);
+})->middleware('auth');
+
+Route::post('/admin/attendance-notes', function (Request $request) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $data = $request->validate([
+        'employee_ids'   => 'required|array|min:1',
+        'employee_ids.*' => 'integer|exists:users,id',
+        'date'           => 'required|date|before_or_equal:' . now()->addDays(60)->toDateString(),
+        'check_in'       => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+        'check_out'      => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+        'note'           => 'nullable|string|max:500',
+    ], [
+        'employee_ids.required' => 'اختر موظفاً واحداً على الأقل',
+        'date.required'         => 'اختر التاريخ',
+        'check_in.regex'        => 'وقت الحضور غير صحيح',
+        'check_out.regex'       => 'وقت الخروج غير صحيح',
+    ]);
+    if (!$request->filled('check_in') && !$request->filled('check_out') && !$request->filled('note')) {
+        return back()->withInput()->withErrors(['note' => 'اكتب ملاحظة أو حدد وقت حضور / خروج']);
+    }
+
+    $date  = Carbon::parse($data['date'])->toDateString();
+    $done  = [];
+    $skip  = [];
+    foreach (User::whereIn('id', $data['employee_ids'])->where('role', 'employee')->get() as $emp) {
+        $att = Attendance::where('employee_id', $emp->id)->whereDate('date', $date)->first();
+
+        if (!$att && !$request->filled('check_in') && $request->filled('check_out')) {
+            $skip[] = $emp->name;      // no check-in that day: a check-out alone makes no sense
+            continue;
+        }
+        if (!$att) {
+            $att = new Attendance([
+                'employee_id'       => $emp->id,
+                'date'              => $date,
+                'hours_worked'      => 0,
+                'status'            => $request->filled('check_in') ? 'present' : 'absent',
+                'location_verified' => true,
+            ]);
+        }
+
+        if ($request->filled('check_in')) {
+            $att->check_in_time = $data['check_in'] . ':00';
+            $att->status = 'present';
+        }
+        if ($request->filled('check_out')) {
+            $att->check_out_time      = $data['check_out'] . ':00';
+            $att->check_out_verified  = true;
+            $att->auto_checkout       = false;
+        }
+        if ($att->check_in_time && $att->check_out_time) {
+            $in  = Carbon::parse($date . ' ' . $att->check_in_time);
+            $out = Carbon::parse($date . ' ' . $att->check_out_time);
+            $att->hours_worked = $out->gt($in) ? round($in->diffInMinutes($out) / 60, 2) : 0;
+        }
+        if ($request->filled('note')) {
+            $att->note = $data['note'];
+        }
+        $att->manual    = true;
+        $att->edited_by = Auth::id();
+        $att->save();
+        $done[] = $emp->name;
+    }
+
+    try {
+        ActivityLog::create([
+            'user_id'    => Auth::id(),
+            'action'     => 'attendance_note',
+            'target'     => implode('، ', $done) ?: '-',
+            'details'    => "Date {$date}" . ($request->check_in ? " in {$request->check_in}" : '') . ($request->check_out ? " out {$request->check_out}" : '') . ($request->note ? ' | ' . $request->note : ''),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+    } catch (\Exception $e) {}
+
+    $msg = $done ? 'تم الحفظ لـ: ' . implode('، ', $done) : '';
+    if ($skip) {
+        return back()->withInput()->with('success', $msg)
+            ->with('flash_error', 'لم يُحفظ لـ: ' . implode('، ', $skip) . ' — لا يوجد لهم حضور في هذا اليوم، أدخل وقت الحضور أيضاً.');
+    }
+    return back()->with('success', $msg . ' ✅');
+})->middleware('auth');
+
+Route::post('/admin/attendance-notes/{id}/delete', function (Request $request, $id) {
+    if (Auth::user()->role !== 'admin') abort(403);
+    $att = Attendance::findOrFail($id);
+    if ($att->status === 'absent' && !$att->check_in_time) {
+        $att->delete();                       // a note-only day: remove it completely
+    } else {
+        $att->forceFill(['note' => null])->save();   // a real attendance day: only clear the note
+    }
+    return back()->with('success', 'تم الحذف');
 })->middleware('auth');
