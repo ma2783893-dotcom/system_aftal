@@ -35,6 +35,24 @@
         <h1 class="text-3xl font-bold text-gray-800">{{ __('Employee List') }}</h1>
         <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
             @if(auth()->user()->role === 'admin')
+            @php $pendingReq = \App\Models\StaffRequest::pendingCount(); @endphp
+            <a href="/admin/requests"
+               style="background:#2563eb; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600; position:relative;">
+                📥 الطلبات
+                @if($pendingReq > 0)
+                <span style="background:#ef4444; color:#fff; border-radius:999px; padding:0 7px; font-size:0.75rem; margin-right:4px;">{{ $pendingReq }}</span>
+                @endif
+            </a>
+            <a href="/admin/anomalies"
+               style="background:#be123c; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                🕵️ كاشف التلاعب
+            </a>
+            <a href="/admin/backup"
+               style="background:#334155; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
+                💾 نسخة احتياطية
+            </a>
+            @endif
+            @if(auth()->user()->role === 'admin')
             <a href="/admin/credentials"
                style="background:#b45309; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
                 🔐 بطاقات الدخول

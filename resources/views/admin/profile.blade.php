@@ -414,6 +414,8 @@
         $canManage = auth()->user()->hasPermission('edit_employee');
         $cvOk      = $emp->hasCvFile();
     @endphp
+    @include('employee._requests')
+
     @if($isSelf || $canManage || auth()->user()->canSeeFilesOf($emp))
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6" id="cv">
         <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;">📄 {{ $isSelf ? 'سيرتي الذاتية' : 'السيرة الذاتية' }}</h3>

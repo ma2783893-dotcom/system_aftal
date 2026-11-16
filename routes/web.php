@@ -479,7 +479,8 @@ Route::post('/attendance/check-in', function (Request $request) {
             'location_verified' => $verified,
             'ip_address'        => $request->ip(),
             'device_id'         => $request->device_id,
-        ]);
+        ] + (\Illuminate\Support\Facades\Schema::hasColumn('attendances', 'accuracy') && $request->filled('accuracy')
+            ? ['accuracy' => round((float) $request->accuracy, 2)] : []));
     } catch (\Exception $e) {
         \Log::error('Attendance::create failed: ' . $e->getMessage());
         return response()->json(['success' => false, 'message' => 'خطأ في قاعدة البيانات'], 500);
@@ -838,6 +839,10 @@ Route::post('/admin/credentials', function (Request $request) {
         'employee_ids.required' => 'اختر موظفاً واحداً على الأقل',
         'confirm.accepted'      => 'يجب تأكيد إعادة تعيين كلمات المرور',
     ]);
+    // safety: changing three or more passwords at once needs the number typed on purpose
+    if (count($request->employee_ids) >= 3 && (int) $request->input('confirm_count') !== count($request->employee_ids)) {
+        return back()->withErrors(['employee_ids' => 'لم يتم التنفيذ: لتغيير كلمات مرور 3 موظفين أو أكثر يجب كتابة عددهم للتأكيد.']);
+    }
 
     $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     $cards = [];
@@ -1069,3 +1074,5 @@ Route::post('/admin/attendance-notes/{id}/delete', function (Request $request, $
     }
     return back()->with('success', 'تم الحذف');
 })->middleware('auth');
+
+require __DIR__ . '/staff.php';

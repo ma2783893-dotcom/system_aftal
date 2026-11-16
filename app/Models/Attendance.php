@@ -30,6 +30,7 @@ class Attendance extends Model
         'note',
         'manual',
         'edited_by',
+        'accuracy',
     ];
 
     public function employee()
