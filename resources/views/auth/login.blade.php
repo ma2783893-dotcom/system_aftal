@@ -36,11 +36,11 @@
                 <div style="position:relative;">
                     <input type="password" name="password" id="pw" required autocomplete="current-password" placeholder="••••••••"
                         style="width:100%; padding:0.75rem 3rem 0.75rem 1rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:0.75rem; outline:none; font-family:inherit; box-sizing:border-box;">
-                    <button type="button" aria-label="إظهار كلمة المرور"
-                        onclick="var p=document.getElementById('pw'); p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? '👁️' : '🙈';"
-                        style="position:absolute; top:50%; right:0.6rem; transform:translateY(-50%); background:none; border:none; font-size:1.15rem; cursor:pointer; padding:4px;">👁️</button>
+                    <button type="button" aria-label="إظهار كلمة المرور" title="إظهار / إخفاء كلمة المرور"
+                        onclick="var p=document.getElementById('pw'); var show=p.type==='password'; p.type=show?'text':'password'; this.querySelector('.eye-open').style.display=show?'none':''; this.querySelector('.eye-off').style.display=show?'':'none';"
+                        style="position:absolute; top:50%; right:0.6rem; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:4px; color:#6b7280; display:flex; align-items:center;"><svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" style="display:none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-6.5 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="2" y1="2" x2="22" y2="22"/></svg></button>
                 </div>
-                <p style="font-size:0.75rem; color:#94a3b8; margin:6px 0 0;">اضغط 👁️ لترى ما تكتبه وتتأكد منه</p>
+                <p style="font-size:0.75rem; color:#94a3b8; margin:6px 0 0;">اضغط أيقونة العين لترى ما تكتبه وتتأكد منه</p>
             </div>
             <button type="submit"
                 style="width:100%; background:#0a2540; color:white; font-weight:700; padding:0.875rem; border-radius:0.75rem; border:none; cursor:pointer; font-family:inherit; font-size:1rem; transition: background 0.3s ease;">
