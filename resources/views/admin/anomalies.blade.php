@@ -4,7 +4,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-4">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;">🕵️ كاشف التلاعب في الحضور</h1>
+        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="shield"/> كاشف التلاعب في الحضور</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">← العودة للوحة التحكم</a>
     </div>
 
@@ -30,11 +30,11 @@
             </div>
             <div style="margin-top:6px; font-weight:700; color:#0a2540;">{{ implode('، ', $f['people']) }}</div>
             <div style="margin-top:4px; font-size:0.88rem; color:#334155; line-height:1.8;">{{ $f['detail'] }}</div>
-            <div style="margin-top:4px; font-size:0.8rem; color:#64748b;">💡 {{ $f['why'] }}</div>
+            <div style="margin-top:4px; font-size:0.8rem; color:#64748b;"><x-icon name="info"/> {{ $f['why'] }}</div>
         </div>
     @empty
         <div class="bg-white rounded-xl border border-gray-100" style="padding:2rem; text-align:center; color:#15803d; font-weight:700;">
-            ✅ لا توجد حالات مشبوهة في هذه الفترة
+            <x-icon name="check"/> لا توجد حالات مشبوهة في هذه الفترة
         </div>
     @endforelse
 

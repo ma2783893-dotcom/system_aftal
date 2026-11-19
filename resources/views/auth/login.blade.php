@@ -53,7 +53,7 @@
             </div>
             <button type="submit"
                 style="width:100%; background:#0a2540; color:white; font-weight:700; padding:0.875rem; border-radius:0.75rem; border:none; cursor:pointer; font-family:inherit; font-size:1rem; transition: background 0.3s ease;">
-                تسجيل الدخول ❯
+                تسجيل الدخول
             </button>
         </form>
     </div>

@@ -36,7 +36,7 @@
 </head>
 <body>
     <div class="bar">
-        <button onclick="window.print()" style="background:#16a34a; color:#fff;">🖨️ طباعة / حفظ PDF</button>
+        <button onclick="window.print()" style="background:#16a34a; color:#fff;"><x-icon name="printer"/> طباعة / حفظ PDF</button>
         <a href="javascript:history.back()" style="background:#e5e7eb; color:#111827;">رجوع</a>
     </div>
 

@@ -8,7 +8,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-6">
-        <h2 style="font-size:1.35rem; font-weight:800; color:#0a2540; margin-bottom:6px;">📍 نطاق الجامعة على الخريطة</h2>
+        <h2 style="font-size:1.35rem; font-weight:800; color:#0a2540; margin-bottom:6px;"><x-icon name="pin"/> نطاق الجامعة على الخريطة</h2>
         <p style="color:#64748b; font-size:0.9rem; margin-bottom:16px; line-height:1.8;">
             الموظف يقدر يسجّل حضور أو انصراف إذا كان داخل هذه الدائرة. لو الهاتف يعطي موقعاً غير دقيق
             يُسمح بهامش إضافي حتى {{ \App\Support\AttendanceGuard::MAX_GPS_TOLERANCE }} متر.
@@ -19,7 +19,7 @@
         @endif
         @if($errors->any())
             <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; margin-bottom:14px;">
-                @foreach($errors->all() as $e)<div>⚠️ {{ $e }}</div>@endforeach
+                @foreach($errors->all() as $e)<div><x-icon name="alert"/> {{ $e }}</div>@endforeach
             </div>
         @endif
 
@@ -58,12 +58,12 @@
 
             <button type="button" onclick="useMyLocation()"
                     style="width:100%; background:#0f766e; color:#fff; font-weight:700; padding:11px; border:none; border-radius:10px; cursor:pointer; font-family:inherit;">
-                📡 استخدم موقعي الحالي كمركز للجامعة
+                <x-icon name="target"/> استخدم موقعي الحالي كمركز للجامعة
             </button>
             <p id="geoMsg" style="font-size:0.82rem; color:#64748b; margin:0;">اضغط هذا الزر وأنت واقف في وسط الجامعة من هاتفك.</p>
 
             <div style="border-top:1px dashed #e2e8f0; padding-top:14px;">
-                <h3 style="font-size:1.05rem; font-weight:800; color:#0a2540; margin:0 0 6px;">🕒 الانصراف التلقائي</h3>
+                <h3 style="font-size:1.05rem; font-weight:800; color:#0a2540; margin:0 0 6px;"><x-icon name="clock"/> الانصراف التلقائي</h3>
                 <label style="display:flex; gap:8px; align-items:center; cursor:pointer; margin-bottom:10px;">
                     <input type="checkbox" name="auto_checkout" value="1" {{ old('auto_checkout', $autoCheckout) ? 'checked' : '' }} style="width:18px; height:18px;">
                     <span>لو الموظف نسي يسجّل انصراف، يُسجَّل له انصراف تلقائي في نهاية الدوام</span>
@@ -79,7 +79,7 @@
 
             <button type="submit"
                     style="width:100%; background:#2563eb; color:#fff; font-weight:800; padding:13px; border:none; border-radius:10px; cursor:pointer; font-family:inherit; font-size:1rem;">
-                💾 حفظ النطاق
+                <x-icon name="save"/> حفظ النطاق
             </button>
         </form>
     </div>
@@ -98,14 +98,14 @@ document.getElementById('lng').addEventListener('change', refreshMap);
 function useMyLocation() {
     const msg = document.getElementById('geoMsg');
     if (!navigator.geolocation) { msg.textContent = 'المتصفح لا يدعم تحديد الموقع'; return; }
-    msg.textContent = '⏳ جاري تحديد موقعك...';
+    msg.textContent = 'جاري تحديد موقعك...';
     navigator.geolocation.getCurrentPosition(function (p) {
         document.getElementById('lat').value = p.coords.latitude.toFixed(7);
         document.getElementById('lng').value = p.coords.longitude.toFixed(7);
-        msg.textContent = '✅ تم أخذ موقعك (دقة ±' + Math.round(p.coords.accuracy) + ' متر). راجع الخريطة ثم اضغط حفظ.';
+        msg.textContent = 'تم أخذ موقعك (دقة ±' + Math.round(p.coords.accuracy) + ' متر). راجع الخريطة ثم اضغط حفظ.';
         refreshMap();
     }, function (e) {
-        msg.textContent = e.code === 1 ? '❌ الموقع مرفوض. اسمح للمتصفح بالوصول لموقعك وحاول مرة أخرى.' : '❌ تعذر تحديد الموقع، حاول مرة أخرى.';
+        msg.textContent = e.code === 1 ? 'الموقع مرفوض. اسمح للمتصفح بالوصول لموقعك وحاول مرة أخرى.' : 'تعذر تحديد الموقع، حاول مرة أخرى.';
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 }
 </script>

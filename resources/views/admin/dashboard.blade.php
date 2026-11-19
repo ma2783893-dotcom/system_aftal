@@ -8,25 +8,25 @@
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem;">
         <div style="background:#0a2540; color:white; padding:1.5rem; border-radius:1rem; text-align:center;">
             <div style="font-size:2rem; font-weight:bold;">{{ $totalEmployees }}</div>
-            <div style="color:#94a3b8; margin-top:0.5rem;">👥 {{ __('Total Employees') }}</div>
+            <div style="color:#94a3b8; margin-top:0.5rem;"><x-icon name="users"/> {{ __('Total Employees') }}</div>
         </div>
         <div style="background:#1d4ed8; color:white; padding:1.5rem; border-radius:1rem; text-align:center;">
             <div style="font-size:2rem; font-weight:bold;">{{ $totalHours }}</div>
-            <div style="color:#bfdbfe; margin-top:0.5rem;">⏱️ {{ __('Total Hours') }}</div>
+            <div style="color:#bfdbfe; margin-top:0.5rem;"><x-icon name="clock"/> {{ __('Total Hours') }}</div>
         </div>
         <div style="background:#15803d; color:white; padding:1.5rem; border-radius:1rem; text-align:center;">
             <div style="font-size:2rem; font-weight:bold;">{{ number_format((float)$totalSalaries, 0) }}</div>
-            <div style="color:#bbf7d0; margin-top:0.5rem;">💰 {{ __('Total Salaries') }}</div>
+            <div style="color:#bbf7d0; margin-top:0.5rem;"><x-icon name="wallet"/> {{ __('Total Salaries') }}</div>
         </div>
         <div style="background:#b45309; color:white; padding:1.5rem; border-radius:1rem; text-align:center;">
             <div style="font-size:2rem; font-weight:bold;">{{ $totalDepartments }}</div>
-            <div style="color:#fde68a; margin-top:0.5rem;">🏛️ {{ __('Departments') }}</div>
+            <div style="color:#fde68a; margin-top:0.5rem;"><x-icon name="building"/> {{ __('Departments') }}</div>
         </div>
     </div>
 
     @if(session('success'))
     <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:12px 16px; margin-bottom:1rem; color:#15803d; font-weight:600;">
-        ✅ {{ session('success') }}
+        <x-icon name="check"/> {{ session('success') }}
     </div>
     @endif
 
@@ -38,56 +38,56 @@
             @php $pendingReq = \App\Models\StaffRequest::pendingCount(); @endphp
             <a href="/admin/requests"
                style="background:#2563eb; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600; position:relative;">
-                📥 الطلبات
+                <x-icon name="inbox"/> الطلبات
                 @if($pendingReq > 0)
                 <span style="background:#ef4444; color:#fff; border-radius:999px; padding:0 7px; font-size:0.75rem; margin-right:4px;">{{ $pendingReq }}</span>
                 @endif
             </a>
             <a href="/admin/anomalies"
                style="background:#be123c; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                🕵️ كاشف التلاعب
+                <x-icon name="shield"/> كاشف التلاعب
             </a>
             <a href="/admin/backup"
                style="background:#334155; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                💾 نسخة احتياطية
+                <x-icon name="save"/> نسخة احتياطية
             </a>
             @endif
             @if(auth()->user()->role === 'admin')
             <a href="/admin/credentials"
                style="background:#b45309; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                🔐 بطاقات الدخول
+                <x-icon name="key"/> بطاقات الدخول
             </a>
             @endif
             @if(auth()->user()->hasPermission('view_reports'))
             <a href="/attendance/report"
                style="background:#15803d; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                🕒 تقرير الحضور والساعات
+                <x-icon name="clock"/> تقرير الحضور والساعات
             </a>
             @endif
             @if(auth()->user()->role === 'admin')
             <a href="/attendance/calendar"
                style="background:#0891b2; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                📅 {{ __('Attendance Calendar') }}
+                <x-icon name="calendar"/> {{ __('Attendance Calendar') }}
             </a>
             <a href="/admin/attendance-notes"
                style="background:#9333ea; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                📝 ملاحظات واستثناءات
+                <x-icon name="note"/> ملاحظات واستثناءات
             </a>
             <a href="/admin/attendance-settings"
                style="background:#0f766e; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                📍 نطاق الجامعة
+                <x-icon name="pin"/> نطاق الجامعة
             </a>
             @endif
             @if(auth()->user()->hasPermission('view_reports'))
             <a href="/reports/monthly"
                style="background:#7c3aed; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                📊 {{ __('Monthly Report') }}
+                <x-icon name="chart"/> {{ __('Monthly Report') }}
             </a>
             @endif
             @if(auth()->user()->role === 'admin')
             <a href="/activity-log"
                style="background:#374151; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:600;">
-                📋 سجل النشاط
+                <x-icon name="list"/> سجل النشاط
             </a>
             @endif
             @if(auth()->user()->role === 'admin')
@@ -107,7 +107,7 @@
 
     {{-- Smart Search --}}
     <input type="text" id="searchBox" onkeyup="applyFilters()"
-        placeholder="🔍 {{ __('Search by name, email or specialization...') }}"
+        placeholder="{{ __('Search by name, email or specialization...') }}"
         style="width:100%; padding:12px 16px; border:2px solid #e2e8f0; border-radius:10px;
                font-size:1rem; margin-bottom:1rem; font-family:'Tajawal',sans-serif;
                outline:none; box-sizing:border-box; transition:border-color 0.2s;"
@@ -134,7 +134,7 @@
             @if($errors->any())
             <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:12px; margin-bottom:1rem;">
                 @foreach($errors->all() as $err)
-                    <p style="color:#dc2626; font-size:0.875rem; margin:2px 0;">⚠️ {{ $err }}</p>
+                    <p style="color:#dc2626; font-size:0.875rem; margin:2px 0;"><x-icon name="alert"/> {{ $err }}</p>
                 @endforeach
             </div>
             @endif
@@ -165,7 +165,7 @@
                 </div>
                 <div style="margin-bottom:1rem;">
                     <label style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.4rem;">
-                        📷 {{ __('Profile Photo') }}
+                        {{ __('Profile Photo') }}
                     </label>
                     <input type="file" name="profile_photo" accept="image/*"
                         class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
@@ -173,7 +173,7 @@
                 <div class="flex items-center justify-between gap-4" style="flex-wrap:wrap;">
                     <div>
                         <label style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.4rem;">
-                            📄 {{ __('Resume (PDF)') }}
+                            {{ __('Resume (PDF)') }}
                         </label>
                         <input type="file" name="cv" accept=".pdf,.doc,.docx,image/*"
                             class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
@@ -245,9 +245,9 @@
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center;">
                 <a href="/profile/{{ $emp->id }}" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm">{{ __('View Profile') }}</a>
                 @if($emp->hasCvFile())
-                    <a href="{{ route('resume.download', $emp->id) }}" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">📄 السيرة</a>
+                    <a href="{{ route('resume.download', $emp->id) }}" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm">السيرة</a>
                 @elseif($emp->cv)
-                    <span style="color:#b45309; font-size:0.8rem;">⚠️ السيرة مفقودة</span>
+                    <span style="color:#b45309; font-size:0.8rem;">السيرة مفقودة</span>
                 @endif
                 @if(auth()->user()->hasPermission('edit_employee'))
                     <a href="/edit-employee/{{ $emp->id }}" class="bg-yellow-500 text-white px-3 py-1.5 rounded text-sm">{{ __('Edit') }}</a>
@@ -298,7 +298,7 @@
                                     <a href="{{ route('resume.download', $emp->id) }}"
                                         class="text-green-600 hover:text-green-700 font-medium underline">{{ __('Download') }}</a>
                                 @elseif($emp->cv)
-                                    <span style="color:#b45309; font-size:0.8rem;" title="الملف حُذف من السيرفر، أعد رفعه من صفحة الموظف">⚠️ مفقود</span>
+                                    <span style="color:#b45309; font-size:0.8rem;" title="الملف حُذف من السيرفر، أعد رفعه من صفحة الموظف">مفقود</span>
                                 @else
                                     <span class="text-gray-500">{{ __('Not Available') }}</span>
                                 @endif

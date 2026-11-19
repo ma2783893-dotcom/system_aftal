@@ -19,33 +19,33 @@
         $todayLabel = ($arDays[now()->format('l')] ?? now()->format('l')) . '، ' . now()->format('d/m/Y');
     @endphp
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-        <p style="text-align:center; color:#0a2540; font-weight:700; margin:0 0 12px;">📅 {{ $todayLabel }}</p>
+        <p style="text-align:center; color:#0a2540; font-weight:700; margin:0 0 12px;"><x-icon name="calendar"/> {{ $todayLabel }}</p>
         @if(auth()->user()->role === 'admin' && $emp->role === 'employee')
             <p style="text-align:center; margin:-4px 0 12px;">
-                <a href="/admin/attendance-notes?employee_id[]={{ $emp->id }}" style="color:#7c3aed; font-weight:700; font-size:0.88rem;">📝 تسجيل خروج بساعة معيّنة / إضافة ملاحظة لهذا الموظف</a>
+                <a href="/admin/attendance-notes?employee_id[]={{ $emp->id }}" style="color:#7c3aed; font-weight:700; font-size:0.88rem;"><x-icon name="note"/> تسجيل خروج بساعة معيّنة / إضافة ملاحظة لهذا الموظف</a>
             </p>
         @endif
         @if($todayAttendance && $todayAttendance->note)
-            <p style="text-align:center; background:#faf5ff; color:#6b21a8; border-radius:8px; padding:6px 10px; font-size:0.88rem; margin:0 0 10px;">🗒️ {{ $todayAttendance->note }}</p>
+            <p style="text-align:center; background:#faf5ff; color:#6b21a8; border-radius:8px; padding:6px 10px; font-size:0.88rem; margin:0 0 10px;"><x-icon name="note"/> {{ $todayAttendance->note }}</p>
         @endif
 
         @if($todayAttendance && $todayAttendance->check_in_time)
             <div style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px; margin-bottom:10px;">
-                <span style="font-size:1.6rem;">✅</span>
+                <span style="font-size:1.6rem;"><x-icon name="check"/></span>
                 <div>
                     <p style="font-weight:700; color:#15803d; margin:0;">الحضور: {{ \Carbon\Carbon::parse($todayAttendance->date)->format('d/m/Y') }} — الساعة {{ substr($todayAttendance->check_in_time ?? '', 0, 5) }}</p>
                     <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 0;">
                         @if($todayAttendance->distance_meters !== null)
                             المسافة: <strong>{{ round($todayAttendance->distance_meters) }} متر</strong> |
                         @endif
-                        {{ $todayAttendance->location_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
+                        {{ $todayAttendance->location_verified ? 'موقع موثق' : 'موقع خارج النطاق' }}
                     </p>
                 </div>
             </div>
 
             @if($todayAttendance->check_out_time)
                 <div style="display:flex; align-items:center; gap:12px; background:#eff6ff; border:1px solid #93c5fd; border-radius:10px; padding:14px;">
-                    <span style="font-size:1.6rem;">🚪</span>
+                    <span style="font-size:1.6rem;"><x-icon name="logout"/></span>
                     <div>
                         <p style="font-weight:700; color:#1d4ed8; margin:0;">الانصراف: الساعة {{ substr($todayAttendance->check_out_time, 0, 5) }}</p>
                         <p style="font-size:0.82rem; color:#6b7280; margin:4px 0 0;">
@@ -53,7 +53,7 @@
                             @if($todayAttendance->check_out_distance_meters !== null)
                                 | المسافة: <strong>{{ round($todayAttendance->check_out_distance_meters) }} متر</strong>
                             @endif
-                            | {{ $todayAttendance->check_out_verified ? '✅ موقع موثق' : '⚠️ موقع خارج النطاق' }}
+                            | {{ $todayAttendance->check_out_verified ? 'موقع موثق' : 'موقع خارج النطاق' }}
                         </p>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                             style="background:#dc2626; color:white; font-weight:700; padding:14px 36px;
                                    border-radius:14px; border:none; cursor:pointer; font-size:1.1rem;
                                    font-family:inherit; box-shadow:0 4px 12px rgba(220,38,38,0.3);">
-                        🚪 تسجيل الخروج من الجامعة
+                        <x-icon name="logout"/> تسجيل الخروج من الجامعة
                     </button>
                 </div>
             @endif
@@ -73,18 +73,18 @@
                         style="background:#16a34a; color:white; font-weight:700; padding:14px 36px;
                                border-radius:14px; border:none; cursor:pointer; font-size:1.1rem;
                                font-family:inherit; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
-                    📍 تسجيل الحضور اليوم
+                    <x-icon name="pin"/> تسجيل الحضور اليوم
                 </button>
             </div>
         @endif
         <p style="color:#9ca3af; font-size:0.75rem; margin-top:10px; text-align:center;">
-            📱 التسجيل متاح من الهاتف المحمول، ويجب السماح بتحديد الموقع
+            <x-icon name="phone"/> التسجيل متاح من الهاتف المحمول، ويجب السماح بتحديد الموقع
         </p>
 
         @if(auth()->user()->role === 'admin' && $emp->role === 'employee' && \App\Support\AttendanceGuard::bindingEnabled())
             <div style="border-top:1px dashed #e5e7eb; margin-top:14px; padding-top:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                 <span style="font-size:0.82rem; color:#475569;">
-                    📱 الهاتف المسجّل:
+                    <x-icon name="phone"/> الهاتف المسجّل:
                     @if($emp->device_id)
                         <strong>مربوط</strong> منذ {{ optional($emp->device_bound_at)->format('d/m/Y H:i') }}
                     @else
@@ -96,7 +96,7 @@
                       onsubmit="return confirm('إعادة تعيين الهاتف؟ سيُربط الحساب بأول هاتف يسجّل منه الموظف.')">
                     @csrf
                     <button style="background:#f59e0b; color:white; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; font-size:0.8rem; font-weight:700; font-family:inherit;">
-                        🔄 إعادة تعيين الهاتف
+                        <x-icon name="refresh"/> إعادة تعيين الهاتف
                     </button>
                 </form>
                 @endif
@@ -107,10 +107,10 @@
     {{-- Location Modal --}}
     <div id="locationModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-            <h3 id="modalTitle" style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:16px;">📍 تحديد الموقع</h3>
+            <h3 id="modalTitle" style="text-align:center; font-size:1.2rem; font-weight:700; margin-bottom:16px;"><x-icon name="pin"/> تحديد الموقع</h3>
 
             <div id="locationStatus" style="text-align:center; padding:20px;">
-                <div style="font-size:2.5rem; margin-bottom:10px;">🔄</div>
+                <div style="width:36px;height:36px;margin:0 auto 12px;border:4px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:aftalspin 0.8s linear infinite;"></div>
                 <p style="color:#6b7280;">جاري تحديد موقعك...</p>
             </div>
 
@@ -122,7 +122,7 @@
                     <button id="confirmBtn" onclick="confirmAttendance()" class="hidden"
                             style="flex:1; background:#16a34a; color:white; padding:12px; border-radius:10px;
                                    border:none; cursor:pointer; font-weight:700; font-family:inherit; font-size:1rem;">
-                        ✅ تأكيد
+                        <x-icon name="check"/> تأكيد
                     </button>
                     <button onclick="closeModal()"
                             style="flex:1; background:#e5e7eb; color:#374151; padding:12px; border-radius:10px;
@@ -165,13 +165,13 @@
         attMode = mode;
         const isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent);
         if (!isMobile) {
-            alert('⚠️ التسجيل متاح من الهاتف المحمول فقط.\nيرجى فتح الرابط من هاتفك.');
+            alert('التسجيل متاح من الهاتف المحمول فقط.\nيرجى فتح الرابط من هاتفك.');
             return;
         }
-        document.getElementById('modalTitle').innerText = mode === 'in' ? '📍 تسجيل الحضور' : '🚪 تسجيل الخروج من الجامعة';
+        document.getElementById('modalTitle').innerText = mode === 'in' ? 'تسجيل الحضور' : 'تسجيل الخروج من الجامعة';
         document.getElementById('locationModal').classList.remove('hidden');
         document.getElementById('locationStatus').classList.remove('hidden');
-        document.getElementById('locationStatus').innerHTML = '<div style="font-size:2.5rem;margin-bottom:10px;">🔄</div><p style="color:#6b7280;">جاري تحديد موقعك...</p>';
+        document.getElementById('locationStatus').innerHTML = '<div class="aftal-spin" style="width:36px;height:36px;margin:0 auto 12px;border:4px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:aftalspin 0.8s linear infinite;"></div><p style="color:#6b7280;">جاري تحديد موقعك...</p>';
         document.getElementById('locationInfo').classList.add('hidden');
         document.getElementById('map').classList.add('hidden');
 
@@ -197,18 +197,18 @@
 
         const distEl  = document.getElementById('distanceInfo');
         const confBtn = document.getElementById('confirmBtn');
-        confBtn.innerHTML = attMode === 'in' ? '✅ تأكيد الحضور' : '✅ تأكيد الانصراف';
+        confBtn.innerHTML = attMode === 'in' ? 'تأكيد الحضور' : 'تأكيد الانصراف';
         confBtn.style.background = attMode === 'in' ? '#16a34a' : '#dc2626';
 
         if (distance <= MAX_DISTANCE + Math.min(accuracy || 0, GPS_TOLERANCE)) {
             distEl.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;padding:12px;border-radius:10px;text-align:center;">
-                <p style="color:#15803d;font-weight:700;font-size:1.05rem;margin:0;">✅ أنت داخل النطاق</p>
+                <p style="color:#15803d;font-weight:700;font-size:1.05rem;margin:0;">أنت داخل النطاق</p>
                 <p style="color:#16a34a;margin:4px 0 0;">المسافة: ${distance.toFixed(0)} متر | دقة GPS: ±${accuracy.toFixed(0)} متر</p>
             </div>`;
             confBtn.classList.remove('hidden');
         } else {
             distEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fca5a5;padding:12px;border-radius:10px;text-align:center;">
-                <p style="color:#dc2626;font-weight:700;font-size:1.05rem;margin:0;">❌ أنت خارج النطاق</p>
+                <p style="color:#dc2626;font-weight:700;font-size:1.05rem;margin:0;">أنت خارج النطاق</p>
                 <p style="color:#ef4444;margin:4px 0 0;">المسافة: ${distance.toFixed(0)} متر | يجب أن تكون داخل ${MAX_DISTANCE} متر</p>
                 <p style="color:#9ca3af;font-size:0.75rem;margin:4px 0 0;">دقة GPS: ±${accuracy.toFixed(0)} متر</p>
             </div>`;
@@ -223,8 +223,8 @@
     }
 
     function showLocationError(msg) {
-        document.getElementById('locationStatus').innerHTML = `<p style="color:#dc2626;font-size:1.5rem;">❌</p><p style="color:#dc2626;">${msg}</p>
-            <button onclick="startAttendance(attMode)" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">🔄 حاول مرة أخرى</button>`;
+        document.getElementById('locationStatus').innerHTML = `<p style="color:#dc2626;">${msg}</p>
+            <button onclick="startAttendance(attMode)" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">حاول مرة أخرى</button>`;
         document.getElementById('locationInfo').classList.remove('hidden');
     }
 
@@ -245,15 +245,15 @@
                    'ارجع لهنا، حدّث الصفحة واضغط تسجيل مرة أخرى، واختر <b>سماح</b> لما يسألك.'];
         } else {
             steps = ['اسحب من أعلى الشاشة وتأكد إن <b>الموقع / GPS</b> مفعّل.',
-                     'اضغط على <b>🔒 القفل</b> بجانب الرابط فوق ← <b>الأذونات</b> ← <b>الموقع</b> ← <b>سماح</b>.',
+                     'اضغط على <b>القفل</b> بجانب الرابط فوق ← <b>الأذونات</b> ← <b>الموقع</b> ← <b>سماح</b>.',
                      'لو ما ظهر: <b>الإعدادات</b> ← <b>التطبيقات</b> ← <b>' + app + '</b> ← <b>الأذونات</b> ← <b>الموقع</b> ← <b>السماح أثناء الاستخدام</b>.',
                      'ارجع لهنا، حدّث الصفحة واضغط تسجيل مرة أخرى، واختر <b>سماح</b>.'];
         }
         document.getElementById('locationStatus').innerHTML =
-            `<p style="font-size:1.6rem;margin:0;">📍</p>
+            `
              <p style="color:#b91c1c;font-weight:700;margin:6px 0 10px;">الموقع مرفوض، والتسجيل يحتاج تحديد موقعك</p>
              <ol style="text-align:right;font-size:0.88rem;line-height:1.9;color:#334155;padding-right:18px;margin:0;">${steps.map(s => '<li>' + s + '</li>').join('')}</ol>
-             <button onclick="location.reload()" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">🔄 حدّثت الإعدادات، حاول الآن</button>`;
+             <button onclick="location.reload()" style="margin-top:12px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-weight:700;font-family:inherit;cursor:pointer;">حدّثت الإعدادات، حاول الآن</button>`;
         document.getElementById('locationInfo').classList.remove('hidden');
     }
 
@@ -270,7 +270,7 @@
         const btn = document.getElementById('confirmBtn');
         const label = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '⏳ جاري التسجيل...';
+        btn.innerHTML = 'جاري التسجيل...';
 
         fetch(attMode === 'in' ? '/attendance/check-in' : '/attendance/check-out', {
             method: 'POST',
@@ -291,10 +291,10 @@
         })
         .then(data => {
             if (data.success) {
-                alert('✅ ' + data.message + '\n📅 ' + data.date + '  ⏰ ' + data.time + (data.hours !== undefined ? '\n⏱️ مدة الدوام: ' + data.hours + ' ساعة' : ''));
+                alert(data.message + '\n' + data.date + '  ' + data.time + (data.hours !== undefined ? '\nمدة الدوام: ' + data.hours + ' ساعة' : ''));
                 closeModal(); location.reload();
             } else if (!data.silent) {
-                alert('❌ ' + (data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = label;
+                alert((data.message || 'حدث خطأ')); btn.disabled = false; btn.innerHTML = label;
             }
         })
         .catch(err => { alert('خطأ في الاتصال:\n' + err.message); btn.disabled = false; btn.innerHTML = label; });
@@ -310,7 +310,7 @@
     @php $vouchers = \App\Models\EmployeeVoucher::where('employee_id', $emp->id)->latest()->get(); @endphp
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
         <div class="flex justify-between items-center mb-4">
-            <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540;">💰 المحفظة المالية</h3>
+            <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540;"><x-icon name="wallet"/> المحفظة المالية</h3>
             @if(auth()->user()->isAdmin())
             <button onclick="document.getElementById('addVoucherModal').classList.remove('hidden')"
                     style="background:#16a34a; color:white; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:0.875rem; font-family:inherit;">
@@ -345,12 +345,12 @@
                     <span style="padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;
                                  background:{{ $v->status === 'available' ? '#dcfce7' : '#f3f4f6' }};
                                  color:{{ $v->status === 'available' ? '#15803d' : '#6b7280' }};">
-                        {{ $v->status === 'available' ? '🔓 متاحة' : '🔒 مغلقة' }}
+                        {{ $v->status === 'available' ? 'متاحة' : 'مغلقة' }}
                     </span>
                     @if($v->status === 'available' && $v->attachment)
                     <a href="/voucher/{{ $v->id }}/download"
                        style="background:#3b82f6; color:white; padding:4px 12px; border-radius:6px; font-size:0.75rem; text-decoration:none; font-weight:600;">
-                        📄 تحميل
+                        <x-icon name="file"/> تحميل
                     </a>
                     @endif
                     @if(auth()->user()->isAdmin() && $v->status === 'locked')
@@ -371,10 +371,10 @@
     @if(auth()->user()->isAdmin())
     <div id="addVoucherModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
-            <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:1rem;">💰 إضافة قسيمة مالية</h3>
+            <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:1rem;"><x-icon name="wallet"/> إضافة قسيمة مالية</h3>
             @if($errors->voucher->any())
                 <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px; margin-bottom:12px; color:#b91c1c; font-size:0.875rem;">
-                    @foreach($errors->voucher->all() as $err)<div>❌ {{ $err }}</div>@endforeach
+                    @foreach($errors->voucher->all() as $err)<div><x-icon name="x"/> {{ $err }}</div>@endforeach
                 </div>
             @endif
             <form method="POST" action="/voucher/add" enctype="multipart/form-data">
@@ -387,8 +387,8 @@
                 <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,image/*"
                        style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:10px; box-sizing:border-box;">
                 <select name="status" style="width:100%; border:1px solid #d1d5db; padding:8px 12px; border-radius:8px; margin-bottom:16px; font-family:inherit; box-sizing:border-box; background:white;">
-                    <option value="locked">🔒 مغلقة (يفتحها الأدمن لاحقاً)</option>
-                    <option value="available">🔓 متاحة فوراً</option>
+                    <option value="locked">مغلقة (يفتحها الأدمن لاحقاً)</option>
+                    <option value="available">متاحة فوراً</option>
                 </select>
                 <div style="display:flex; gap:8px;">
                     <button type="submit" style="flex:1; background:#16a34a; color:white; padding:10px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
@@ -418,7 +418,7 @@
 
     @if($isSelf || $canManage || auth()->user()->canSeeFilesOf($emp))
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6" id="cv">
-        <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;">📄 {{ $isSelf ? 'سيرتي الذاتية' : 'السيرة الذاتية' }}</h3>
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:12px;"><x-icon name="file"/> {{ $isSelf ? 'سيرتي الذاتية' : 'السيرة الذاتية' }}</h3>
 
         @if(session('cv_success'))
             <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:10px; margin-bottom:12px; color:#15803d; font-size:0.875rem;">
@@ -427,36 +427,36 @@
         @endif
         @error('cv')
             <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px; margin-bottom:12px; color:#b91c1c; font-size:0.875rem;">
-                ⚠️ {{ $message }}
+                <x-icon name="alert"/> {{ $message }}
             </div>
         @enderror
 
         @if($cvOk)
-            <p style="color:#15803d; margin-bottom:10px; font-size:0.9rem;">✅ السيرة الذاتية مرفوعة</p>
+            <p style="color:#15803d; margin-bottom:10px; font-size:0.9rem;"><x-icon name="check"/> السيرة الذاتية مرفوعة</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
                 @if(\App\Support\FileStore::viewable($emp->cv))
                 <a href="{{ route('resume.view', $emp->id) }}" target="_blank"
                    style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
-                    👁️ عرض
+                    <x-icon name="eye"/> عرض
                 </a>
                 @endif
                 <a href="{{ route('resume.download', $emp->id) }}"
                    style="background:#3b82f6; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem; font-weight:700;">
-                    📥 تحميل
+                    <x-icon name="download"/> تحميل
                 </a>
                 @if($canManage)
                 <form method="POST" action="/admin/employees/{{ $emp->id }}/cv/delete" style="margin:0;"
                       onsubmit="return confirm('حذف السيرة الذاتية لهذا الموظف؟')">
                     @csrf
                     <button style="background:#fee2e2; color:#b91c1c; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; font-size:0.875rem; font-weight:700; font-family:inherit;">
-                        🗑️ حذف
+                        <x-icon name="trash"/> حذف
                     </button>
                 </form>
                 @endif
             </div>
         @elseif($emp->cv)
             <p style="background:#fff7ed; border:1px solid #fdba74; color:#9a3412; padding:10px; border-radius:8px; font-size:0.875rem; margin-bottom:12px;">
-                ⚠️ ملف السيرة الذاتية القديم لم يعد موجوداً على السيرفر. يرجى رفعه من جديد.
+                <x-icon name="alert"/> ملف السيرة الذاتية القديم لم يعد موجوداً على السيرفر. يرجى رفعه من جديد.
             </p>
         @else
             <p style="color:#9ca3af; font-size:0.875rem; margin-bottom:12px;">لم يتم رفع سيرة ذاتية بعد</p>
@@ -470,7 +470,7 @@
                    style="width:100%; border:1px solid #d1d5db; padding:8px; border-radius:8px; margin-bottom:10px; box-sizing:border-box; font-size:0.875rem;">
             <p style="font-size:0.75rem; color:#94a3b8; margin:-4px 0 10px;">PDF أو Word أو صورة للسيرة الذاتية، حتى 10 ميجابايت. من الهاتف تقدر تختار من الملفات أو تصوّرها بالكاميرا.</p>
             <button type="submit" style="background:#2563eb; color:white; padding:9px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-family:inherit;">
-                📤 {{ $cvOk || $emp->cv ? 'استبدال السيرة الذاتية' : 'رفع السيرة الذاتية' }}
+                <x-icon name="upload"/> {{ $cvOk || $emp->cv ? 'استبدال السيرة الذاتية' : 'رفع السيرة الذاتية' }}
             </button>
         </form>
         <script>
@@ -481,7 +481,7 @@
             if (!/\.(pdf|docx?|jpe?g|png|webp|heic|heif)$/i.test(f.name) && !/^image\//.test(f.type) && f.type !== 'application/pdf') { alert('السيرة الذاتية يجب أن تكون PDF أو Word أو صورة'); return false; }
             if (f.size > 10 * 1024 * 1024) { alert('حجم الملف ' + (f.size / 1048576).toFixed(1) + ' ميجابايت، والحد الأقصى 10 ميجابايت'); return false; }
             var btn = form.querySelector('button[type=submit]');
-            btn.disabled = true; btn.innerHTML = '⏳ جاري الرفع...';
+            btn.disabled = true; btn.innerHTML = 'جاري الرفع...';
             return true;
         }
         </script>
@@ -699,4 +699,5 @@
         @endif
     </div>
 </div>
+<style>@keyframes aftalspin{to{transform:rotate(360deg)}}</style>
 @endsection

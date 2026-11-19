@@ -4,11 +4,11 @@
 @section('content')
 <div class="max-w-2xl mx-auto px-4">
     <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800">✏️ {{ __('Edit Employee') }}</h1>
+        <h1 class="text-2xl font-bold mb-6 text-gray-800"><x-icon name="note"/> {{ __('Edit Employee') }}</h1>
 
         @if($errors->any())
             <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; margin-bottom:16px; font-size:0.9rem;">
-                @foreach($errors->all() as $e)<div>⚠️ {{ $e }}</div>@endforeach
+                @foreach($errors->all() as $e)<div><x-icon name="alert"/> {{ $e }}</div>@endforeach
             </div>
         @endif
 
@@ -23,7 +23,7 @@
                      onerror="this.src='/assets/default-avatar.svg'">
                 <div style="margin-top:0.75rem;">
                     <label style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.4rem;">
-                        📷 {{ __('Change Profile Photo') }}
+                        <x-icon name="camera"/> {{ __('Change Profile Photo') }}
                     </label>
                     <input type="file" name="profile_photo" accept="image/*"
                         class="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
@@ -50,9 +50,9 @@
                 <label class="block text-sm font-bold text-gray-700 mb-1">{{ __('Current Resume') }}</label>
                 @if($emp->hasCvFile())
                     <a href="{{ route('resume.view', $emp->id) }}" target="_blank"
-                        class="text-blue-500 underline text-sm">📄 عرض السيرة الذاتية</a>
+                        class="text-blue-500 underline text-sm"><x-icon name="file"/> عرض السيرة الذاتية</a>
                 @elseif($emp->cv)
-                    <span style="color:#b45309; font-size:0.875rem;">⚠️ الملف مفقود من السيرفر، ارفعه من جديد بالأسفل</span>
+                    <span style="color:#b45309; font-size:0.875rem;"><x-icon name="alert"/> الملف مفقود من السيرفر، ارفعه من جديد بالأسفل</span>
                 @else
                     <span class="text-gray-500 text-sm">{{ __('Not Available') }}</span>
                 @endif

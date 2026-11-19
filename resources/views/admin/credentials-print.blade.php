@@ -76,18 +76,18 @@
 <body>
     <div class="toolbar">
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn btn-green" onclick="printAll()">📄 حفظ كل البطاقات PDF / طباعة</button>
-            <button class="btn btn-blue" onclick="printList()">📋 القائمة المجمّعة للمدير</button>
+            <button class="btn btn-green" onclick="printAll()"><x-icon name="file"/> حفظ كل البطاقات PDF / طباعة</button>
+            <button class="btn btn-blue" onclick="printList()"><x-icon name="list"/> القائمة المجمّعة للمدير</button>
             <a class="btn btn-gray" href="/">العودة للوحة التحكم</a>
         </div>
-        <div class="warn">⚠️ تظهر كلمات المرور مرة واحدة فقط. احفظ الملفات قبل مغادرة الصفحة.</div>
+        <div class="warn"><x-icon name="alert"/> تظهر كلمات المرور مرة واحدة فقط. احفظ الملفات قبل مغادرة الصفحة.</div>
     </div>
 
     <div class="pages">
         @foreach($cards as $i => $c)
         <section class="page" id="card-{{ $i }}" data-name="{{ $c['name'] }}">
             <div class="card-actions">
-                <button class="btn btn-green" onclick="printOne({{ $i }})">📄 حفظ PDF لهذا الموظف</button>
+                <button class="btn btn-green" onclick="printOne({{ $i }})"><x-icon name="file"/> حفظ PDF لهذا الموظف</button>
             </div>
             <div class="head">
                 <img src="{{ asset('assets/logo-print.png') }}" alt="" onerror="this.style.display='none'">
@@ -126,7 +126,7 @@
                 </ol>
             </div>
 
-            <div class="note">🔒 لا تشارك كلمة المرور مع أي شخص. كلمة المرور المؤقتة تتوقف بمجرد تغييرها.</div>
+            <div class="note"><x-icon name="lock"/> لا تشارك كلمة المرور مع أي شخص. كلمة المرور المؤقتة تتوقف بمجرد تغييرها.</div>
 
             <div class="foot">
                 <span>جامعة الأفضل الدولية</span>

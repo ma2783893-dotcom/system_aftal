@@ -4,7 +4,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-4">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;">📥 طلبات الموظفين</h1>
+        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="inbox"/> طلبات الموظفين</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">← العودة للوحة التحكم</a>
     </div>
 
@@ -14,7 +14,7 @@
 
     @if($np = session('new_password'))
         <div style="background:#fffbeb; border:2px solid #f59e0b; padding:16px; border-radius:12px; margin-bottom:16px;">
-            <div style="font-weight:800; color:#92400e; margin-bottom:8px;">🔑 كلمة المرور الجديدة — تظهر مرة واحدة فقط، أرسلها للموظف الآن</div>
+            <div style="font-weight:800; color:#92400e; margin-bottom:8px;"><x-icon name="key"/> كلمة المرور الجديدة — تظهر مرة واحدة فقط، أرسلها للموظف الآن</div>
             <div id="npText" style="background:#fff; border-radius:8px; padding:12px; line-height:2; font-size:0.95rem;">
                 {{ $np['name'] }}<br>
                 <span dir="ltr">البريد: {{ $np['email'] }}</span><br>
@@ -22,8 +22,8 @@
                 <span dir="ltr">{{ url('/login') }}</span>
             </div>
             <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('npText').innerText).then(()=>{this.innerText='✅ تم النسخ'})"
-                        style="background:#0a2540; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-family:inherit;">📋 نسخ</button>
+                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('npText').innerText).then(()=>{this.innerText='<x-icon name="check"/> تم النسخ'})"
+                        style="background:#0a2540; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-family:inherit;"><x-icon name="list"/> نسخ</button>
                 <a href="https://wa.me/?text={{ rawurlencode($np['name'] . "\nالبريد: " . $np['email'] . "\nكلمة المرور: " . $np['password'] . "\n" . url('/login')) }}" target="_blank" rel="noopener"
                    style="background:#16a34a; color:#fff; padding:8px 16px; border-radius:8px; text-decoration:none;">إرسال بالواتساب</a>
             </div>
@@ -63,8 +63,8 @@
                     <input type="text" name="admin_note" maxlength="500" placeholder="ملاحظة (اختياري)"
                            style="flex:1; min-width:160px; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-family:inherit;">
                     <button name="decision" value="approve" style="background:#16a34a; color:#fff; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit;"
-                            @if($r->type === 'password') onclick="return confirm('سيتم إنشاء كلمة مرور جديدة لهذا الموظف فقط. متابعة؟')" @endif>✔ موافقة</button>
-                    <button name="decision" value="reject" style="background:#e5e7eb; color:#111827; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit;">✖ رفض</button>
+                            @if($r->type === 'password') onclick="return confirm('سيتم إنشاء كلمة مرور جديدة لهذا الموظف فقط. متابعة؟')" @endif><x-icon name="check"/> موافقة</button>
+                    <button name="decision" value="reject" style="background:#e5e7eb; color:#111827; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit;"><x-icon name="x"/> رفض</button>
                 </form>
             @else
                 <div style="margin-top:8px; font-size:0.82rem; color:{{ $r->status === 'approved' ? '#15803d' : '#b91c1c' }};">

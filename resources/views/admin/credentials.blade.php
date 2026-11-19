@@ -8,12 +8,12 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 style="font-size:1.4rem; font-weight:800; color:#0a2540; margin-bottom:8px;">🔐 بطاقات الدخول للموظفين</h2>
+        <h2 style="font-size:1.4rem; font-weight:800; color:#0a2540; margin-bottom:8px;"><x-icon name="key"/> بطاقات الدخول للموظفين</h2>
 
         <div style="background:#fff7ed; border:1px solid #fdba74; color:#9a3412; padding:12px 14px; border-radius:10px; font-size:0.9rem; line-height:1.8; margin-bottom:16px;">
             <strong>تنبيه قبل الضغط:</strong>
             <div style="background:#fee2e2; color:#991b1b; padding:8px 10px; border-radius:8px; margin-bottom:8px; font-weight:700;">
-                موظف واحد نسي كلمة المرور؟ لا تستخدم هذه الصفحة للكل — اختره هو فقط، أو وافق على طلبه من صفحة 📥 الطلبات.
+                موظف واحد نسي كلمة المرور؟ لا تستخدم هذه الصفحة للكل — اختره هو فقط، أو وافق على طلبه من صفحة <x-icon name="download"/> الطلبات.
             </div>
             كلمات المرور الحالية محفوظة مشفّرة ولا يمكن عرضها. هذه الصفحة تُنشئ <strong>كلمة مرور مؤقتة جديدة</strong>
             لكل موظف تختاره، وكلمته القديمة <strong>تتوقف فوراً</strong>. بعد الإنشاء تظهر البطاقات
@@ -22,7 +22,7 @@
 
         @if($errors->any())
             <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; margin-bottom:12px;">
-                @foreach($errors->all() as $e)<div>❌ {{ $e }}</div>@endforeach
+                @foreach($errors->all() as $e)<div><x-icon name="x"/> {{ $e }}</div>@endforeach
             </div>
         @endif
 
@@ -81,7 +81,7 @@
                 var n = f.querySelectorAll('.emp-cb:checked').length;
                 if (!n) { alert('اختر موظفاً واحداً على الأقل'); return false; }
                 if (n >= 3) {
-                    var typed = prompt('⚠️ ستتغيّر كلمات المرور لـ ' + n + ' موظفين، ولن يستطيعوا الدخول بكلماتهم القديمة.\n\nإذا كنت متأكداً اكتب الرقم ' + n + ' للتأكيد:');
+                    var typed = prompt('ستتغيّر كلمات المرور لـ ' + n + ' موظفين، ولن يستطيعوا الدخول بكلماتهم القديمة.\n\nإذا كنت متأكداً اكتب الرقم ' + n + ' للتأكيد:');
                     if (typed === null || String(typed).trim() !== String(n)) { alert('لم يتم التنفيذ. لم يتغيّر أي شيء.'); return false; }
                     document.getElementById('confirmCount').value = n;
                     return true;
@@ -91,7 +91,7 @@
             </script>
             <button type="submit"
                     style="width:100%; background:#b45309; color:#fff; font-weight:800; padding:14px; border:none; border-radius:10px; cursor:pointer; font-family:inherit; font-size:1rem;">
-                🔐 إنشاء البطاقات للموظفين المحددين
+                <x-icon name="key"/> إنشاء البطاقات للموظفين المحددين
             </button>
         </form>
         @endif

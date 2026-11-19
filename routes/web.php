@@ -126,7 +126,7 @@ Route::post('/change-password', function (Request $request) {
         ]);
     } catch (\Exception $e) {}
 
-    return back()->with('success', 'تم تغيير كلمة المرور بنجاح ✅');
+    return back()->with('success', 'تم تغيير كلمة المرور بنجاح');
 })->middleware('auth');
 
 /*
@@ -409,7 +409,7 @@ Route::get('/run-migrate', function () {
         }
 
         return '<div style="font-family:sans-serif;direction:rtl;max-width:600px;margin:50px auto;padding:20px;border:1px solid #d6dbdf;border-radius:10px;">'
-             . '<h2 style="color:#16a34a;">✅ تم تحديث قاعدة البيانات</h2>'
+             . '<h2 style="color:#16a34a;">تم تحديث قاعدة البيانات</h2>'
              . '<pre style="direction:ltr;text-align:left;background:#f8fafc;padding:10px;white-space:pre-wrap;">' . e($output) . '</pre>'
              . '<a href="' . url('/') . '">العودة للوحة التحكم</a></div>';
     } catch (\Exception $e) {
@@ -733,7 +733,7 @@ Route::post('/voucher/add', function (Request $request) {
                      ->withInput()->with('voucher_error', true);
     }
 
-    return back()->with('voucher_success', 'تم إضافة القسيمة بنجاح ✅');
+    return back()->with('voucher_success', 'تم إضافة القسيمة بنجاح');
 })->middleware('auth');
 
 Route::patch('/voucher/{id}/unlock', function ($id) {
@@ -742,7 +742,7 @@ Route::patch('/voucher/{id}/unlock', function ($id) {
         'status'      => 'available',
         'unlocked_at' => now(),
     ]);
-    return back()->with('voucher_success', 'تم فتح القسيمة ✅');
+    return back()->with('voucher_success', 'تم فتح القسيمة');
 })->middleware('auth');
 
 Route::get('/voucher/{id}/download', function ($id) {
@@ -775,7 +775,7 @@ Route::post('/employee/upload-cv', function (Request $request) {
     $new  = \App\Support\FileStore::put($request->file('cv'), 'cv', $user->id);
     \App\Support\FileStore::delete($user->cv, 'cv');
     $user->forceFill(['cv' => $new])->save();
-    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح ✅');
+    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح');
 })->middleware('auth')->name('employee.upload-cv');
 
 // لو فُتح رابط الرفع مباشرة (تحديث الصفحة بعد الرفع)، ارجع لصفحة الموظف بدل خطأ 405
@@ -805,7 +805,7 @@ Route::post('/admin/employees/{id}/cv', function (Request $request, $id) {
             'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
-    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح ✅');
+    return back()->with('cv_success', 'تم رفع السيرة الذاتية بنجاح');
 })->middleware('auth');
 
 Route::post('/admin/employees/{id}/cv/delete', function ($id) {
@@ -928,7 +928,7 @@ Route::post('/admin/attendance-settings', function (Request $request) {
             'user_agent' => $request->userAgent(),
         ]);
     } catch (\Exception $e) {}
-    return back()->with('success', 'تم حفظ نطاق الحضور ✅');
+    return back()->with('success', 'تم حفظ نطاق الحضور');
 })->middleware('auth');
 
 /*
@@ -1061,7 +1061,7 @@ Route::post('/admin/attendance-notes', function (Request $request) {
         return back()->withInput()->with('success', $msg)
             ->with('flash_error', 'لم يُحفظ لـ: ' . implode('، ', $skip) . ' — لا يوجد لهم حضور في هذا اليوم، أدخل وقت الحضور أيضاً.');
     }
-    return back()->with('success', $msg . ' ✅');
+    return back()->with('success', $msg . '');
 })->middleware('auth');
 
 Route::post('/admin/attendance-notes/{id}/delete', function (Request $request, $id) {

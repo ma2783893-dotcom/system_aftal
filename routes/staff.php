@@ -53,7 +53,7 @@ Route::post('/forgot-password', function (Request $request) use ($notifyAdmin) {
         'reason' => 'nullable|string|max:300',
     ], ['email.*' => 'اكتب بريدك الإلكتروني بشكل صحيح']);
 
-    $done = 'وصل طلبك للإدارة ✅ ستُعطى كلمة مرور جديدة بعد المراجعة، تواصل مع الإدارة إذا تأخر الرد.';
+    $done = 'وصل طلبك للإدارة ستُعطى كلمة مرور جديدة بعد المراجعة، تواصل مع الإدارة إذا تأخر الرد.';
     if (!StaffRequest::ensureTable()) {
         return back()->with('flash_error', 'الخدمة غير متاحة الآن، تواصل مع الإدارة مباشرة.');
     }
@@ -122,7 +122,7 @@ Route::post('/requests', function (Request $request) use ($notifyAdmin, $logActi
     $notifyAdmin('طلب ' . $req->typeLabel(), $user->name . ': ' . $req->summary());
     $logAction($request, 'staff_request', $user->name, $req->typeLabel() . ' — ' . $req->summary());
 
-    return back()->with('req_success', 'تم إرسال طلبك للإدارة ✅')->withFragment('requests');
+    return back()->with('req_success', 'تم إرسال طلبك للإدارة')->withFragment('requests');
 })->middleware('auth');
 
 Route::post('/requests/{id}/cancel', function ($id) {
@@ -168,7 +168,7 @@ Route::post('/admin/requests/{id}', function (Request $request, $id) use ($admin
         return back()->with('success', 'تم رفض الطلب');
     }
 
-    $flash = ['success' => 'تمت الموافقة ✅'];
+    $flash = ['success' => 'تمت الموافقة'];
 
     if ($req->type === 'password') {
         $plain = (string) random_int(1000000, 9999999);       // 7 digits: easy to type on a phone

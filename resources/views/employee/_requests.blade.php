@@ -13,7 +13,7 @@
 @if($reqSelf || ($reqAdmin && $myReqs->isNotEmpty()))
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6" id="requests">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-        <h3 style="font-size:1.1rem; font-weight:800; color:#0a2540; margin:0;">📨 طلبات الإجازة والإذن</h3>
+        <h3 style="font-size:1.1rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="send"/> طلبات الإجازة والإذن</h3>
         @if($reqAdmin)
             <a href="/admin/requests" style="font-size:0.85rem; color:#2563eb;">كل الطلبات ←</a>
         @endif
@@ -33,7 +33,7 @@
     <form method="POST" action="/requests" id="reqForm" style="display:grid; gap:10px; margin-bottom:14px;">
         @csrf
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px;">
-            @foreach(['leave' => '🌴 إجازة', 'late' => '⏰ إذن تأخير', 'early' => '🚪 خروج مبكر'] as $k => $label)
+            @foreach(['leave' => 'إجازة', 'late' => 'إذن تأخير', 'early' => 'خروج مبكر'] as $k => $label)
                 <label style="border:2px solid #e5e7eb; border-radius:10px; padding:10px 4px; text-align:center; cursor:pointer; font-size:0.85rem; font-weight:700;" class="req-type">
                     <input type="radio" name="type" value="{{ $k }}" {{ old('type', 'leave') === $k ? 'checked' : '' }} style="display:none;">{{ $label }}
                 </label>

@@ -4,10 +4,10 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h1 class="text-3xl font-bold text-gray-800">📅 {{ __('Attendance Calendar') }}</h1>
+        <h1 class="text-3xl font-bold text-gray-800"><x-icon name="calendar"/> {{ __('Attendance Calendar') }}</h1>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <a href="/attendance/report?{{ http_build_query(['employee_id' => request('employee_id'), 'from' => \Carbon\Carbon::parse($selectedMonth)->startOfMonth()->format('Y-m-d'), 'to' => \Carbon\Carbon::parse($selectedMonth)->endOfMonth()->format('Y-m-d')]) }}"
-               style="background:#15803d; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">🕒 تقرير هذا الشهر</a>
+               style="background:#15803d; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;"><x-icon name="clock"/> تقرير هذا الشهر</a>
             <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
                 ← {{ __('Back to Dashboard') }}
             </a>
@@ -73,7 +73,7 @@
                             background:{{ $att->location_verified ? '#bbf7d0' : '#fed7aa' }};
                             color:{{ $att->location_verified ? '#15803d' : '#c2410c' }};"
                      title="{{ $att->employee->name ?? '' }} — {{ $att->check_in_time ? 'حضور ' . $att->check_in_time : 'غياب' }}{{ $att->check_out_time ? ' | انصراف ' . $att->check_out_time : '' }}{{ $att->note ? ' | ' . $att->note : '' }}">
-                    {{ $att->location_verified ? '📍' : '⚠️' }}
+                    @if($att->location_verified)<x-icon name="pin"/>@else<x-icon name="alert"/>@endif
                     {{ Str::limit($att->employee->name ?? '—', 10) }}
                     @if($att->check_in_time)
                         <span style="color:#6b7280;">({{ substr($att->check_in_time,0,5) }}@if($att->check_out_time) ← {{ substr($att->check_out_time,0,5) }}@endif)</span>
@@ -91,11 +91,11 @@
         <div style="display:flex; gap:1.5rem; margin-top:1.5rem; font-size:0.8rem; flex-wrap:wrap;">
             <span style="display:flex; align-items:center; gap:6px;">
                 <span style="width:14px; height:14px; background:#bbf7d0; border-radius:3px; display:inline-block;"></span>
-                📍 {{ __('Present') }} (موقع موثق)
+                <x-icon name="pin"/> {{ __('Present') }} (موقع موثق)
             </span>
             <span style="display:flex; align-items:center; gap:6px;">
                 <span style="width:14px; height:14px; background:#fed7aa; border-radius:3px; display:inline-block;"></span>
-                ⚠️ خارج النطاق
+                <x-icon name="alert"/> خارج النطاق
             </span>
             <span style="display:flex; align-items:center; gap:6px;">
                 <span style="width:14px; height:14px; background:#f8fafc; border-radius:3px; display:inline-block;"></span>
@@ -108,7 +108,7 @@
 {{-- Detail Modal --}}
 <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
-        <div id="detailContent" class="text-center text-gray-500">⏳ جاري التحميل...</div>
+        <div id="detailContent" class="text-center text-gray-500">جاري التحميل...</div>
         <button onclick="document.getElementById('detailModal').classList.add('hidden')"
                 class="mt-5 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-xl">
             إغلاق
@@ -119,7 +119,7 @@
 <script>
 function showAttendanceDetail(id) {
     document.getElementById('detailModal').classList.remove('hidden');
-    document.getElementById('detailContent').innerHTML = '⏳ جاري التحميل...';
+    document.getElementById('detailContent').innerHTML = 'جاري التحميل...';
 
     fetch('/attendance/detail/' + id)
         .then(r => r.json())
@@ -128,21 +128,21 @@ function showAttendanceDetail(id) {
                 ? `<a href="https://maps.google.com/?q=${data.lat},${data.lng}" target="_blank"
                       style="display:block; text-align:center; background:#3b82f6; color:white;
                              padding:8px; border-radius:10px; text-decoration:none; margin-top:12px; font-weight:600;">
-                      📍 عرض الموقع على خرائط Google
+                      عرض الموقع على خرائط Google
                    </a>` : '';
 
             document.getElementById('detailContent').innerHTML = `
                 <h3 style="font-weight:700; font-size:1.1rem; margin-bottom:12px;">${data.name}</h3>
-                <p style="color:#6b7280; margin-bottom:6px;">📅 التاريخ: <strong>${data.date || '—'}</strong></p>
-                <p style="color:#6b7280; margin-bottom:6px;">⏰ وقت الحضور: <strong>${data.time ? data.time.substring(0,5) : '—'}</strong></p>
-                <p style="color:#6b7280; margin-bottom:6px;">🚪 وقت الانصراف: <strong>${data.check_out_time ? data.check_out_time.substring(0,5) : 'لم يسجّل بعد'}</strong>
-                    ${data.check_out_time ? (data.check_out_verified ? ' ✅' : ' ⚠️ خارج النطاق') : ''}</p>
-                ${data.check_out_time ? `<p style="color:#6b7280; margin-bottom:6px;">⏱️ مدة الدوام: <strong>${data.hours} ساعة</strong></p>` : ''}
-                <p style="color:#6b7280; margin-bottom:6px;">📏 المسافة من الجامعة: <strong>${data.distance} متر</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">التاريخ: <strong>${data.date || '—'}</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">وقت الحضور: <strong>${data.time ? data.time.substring(0,5) : '—'}</strong></p>
+                <p style="color:#6b7280; margin-bottom:6px;">وقت الانصراف: <strong>${data.check_out_time ? data.check_out_time.substring(0,5) : 'لم يسجّل بعد'}</strong>
+                    ${data.check_out_time ? (data.check_out_verified ? '' : ' خارج النطاق') : ''}</p>
+                ${data.check_out_time ? `<p style="color:#6b7280; margin-bottom:6px;">مدة الدوام: <strong>${data.hours} ساعة</strong></p>` : ''}
+                <p style="color:#6b7280; margin-bottom:6px;">المسافة من الجامعة: <strong>${data.distance} متر</strong></p>
                 <div style="margin:10px 0;">
                     ${data.verified
-                        ? '<span style="background:#dcfce7; color:#15803d; padding:4px 14px; border-radius:20px; font-weight:700;">✅ موقع موثق داخل النطاق</span>'
-                        : '<span style="background:#fee2e2; color:#dc2626; padding:4px 14px; border-radius:20px; font-weight:700;">⚠️ خارج نطاق الجامعة</span>'}
+                        ? '<span style="background:#dcfce7; color:#15803d; padding:4px 14px; border-radius:20px; font-weight:700;">موقع موثق داخل النطاق</span>'
+                        : '<span style="background:#fee2e2; color:#dc2626; padding:4px 14px; border-radius:20px; font-weight:700;">خارج نطاق الجامعة</span>'}
                 </div>
                 ${mapLink}`;
         })

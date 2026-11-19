@@ -19,7 +19,7 @@
 </head>
 <body>
     <div class="card">
-        <div style="font-size:2.6rem;">📄</div>
+        <div style="font-size:2.6rem;"><x-icon name="file"/></div>
         <h1>{{ $title }}</h1>
         <p>{{ $message }}</p>
         <a href="{{ $back }}" target="_top">العودة</a>

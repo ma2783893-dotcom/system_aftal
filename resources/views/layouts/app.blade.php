@@ -143,7 +143,7 @@
                     @auth
                     @if(auth()->user()->isAdmin())
                     <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
-                        <span style="font-size:1.4rem; line-height:1;">🔔</span>
+                        <span style="font-size:1.4rem; line-height:1;"><x-icon name="bell"/></span>
                         @if(isset($unreadCount) && $unreadCount > 0)
                         <span style="position:absolute; top:-6px; right:-6px; background:red; color:white;
                                      border-radius:50%; width:18px; height:18px; font-size:0.65rem;
@@ -157,7 +157,7 @@
                          right:8px; max-width:calc(100vw - 16px); background:white; color:#333; border-radius:12px;
                          width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:999; padding:1rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-                            <h4 style="color:#0a2540; font-weight:bold; margin:0;">🔔 الإشعارات</h4>
+                            <h4 style="color:#0a2540; font-weight:bold; margin:0;"><x-icon name="bell"/> الإشعارات</h4>
                             <a href="/notifications/mark-read" style="font-size:0.75rem; color:#3b82f6; text-decoration:none;">
                                 تعيين الكل كمقروء
                             </a>
@@ -184,7 +184,7 @@
                     @auth
                         <span class="text-sm font-medium hidden md:inline max-w-[12rem] truncate">{{ Auth::user()->name }}</span>
                         <a href="/change-password" title="تغيير كلمة المرور"
-                           class="text-sm bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md transition">🔑</a>
+                           class="text-sm bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md transition"><x-icon name="key"/></a>
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
                             @csrf
                             <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1.5 rounded-md text-sm font-bold transition shadow-sm whitespace-nowrap">{{ __('Logout') }}</button>
@@ -199,7 +199,7 @@
         @if(session('flash_error') && !request()->is('login'))
             <div style="max-width:56rem; margin:0 auto 1rem; padding:0 1rem;">
                 <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:12px 16px; border-radius:10px; font-weight:600;">
-                    ⚠️ {{ session('flash_error') }}
+                    <x-icon name="alert"/> {{ session('flash_error') }}
                 </div>
             </div>
         @endif
@@ -226,9 +226,9 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:1.5rem; font-size:0.9rem; color:#94a3b8;">
-                    <span>📧 ma2783893@gmail.com</span>
-                    <span>📞 +218 919004828</span>
-                    <span>📍 ليبيا</span>
+                    <span><x-icon name="mail"/> ma2783893@gmail.com</span>
+                    <span><x-icon name="call"/> +218 919004828</span>
+                    <span><x-icon name="pin"/> ليبيا</span>
                 </div>
                 <div style="text-align:center; font-size:0.8rem; color:#64748b;">
                     <div>نظام إدارة أعضاء هيئة التدريس</div>

@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="card">
-        <div style="font-size:3rem;">📱</div>
+        <div style="font-size:3rem;"><x-icon name="phone"/></div>
         <h1>المنظومة متاحة من الهاتف المحمول فقط</h1>
         <p>حسابات الموظفين لا تعمل من أجهزة الكمبيوتر.<br>يرجى فتح الرابط من هاتفك المسجّل.</p>
         <form method="POST" action="{{ route('logout') }}">

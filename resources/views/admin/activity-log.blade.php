@@ -5,7 +5,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">📋 {{ __('Activity Log') }}</h1>
+        <h1 class="text-3xl font-bold text-gray-800"><x-icon name="list"/> {{ __('Activity Log') }}</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">
             ← {{ __('Back to Dashboard') }}
         </a>
@@ -14,7 +14,7 @@
     {{-- Session Summary --}}
     @if(isset($sessionSummary) && $sessionSummary->count())
     <div class="bg-white p-5 rounded-xl shadow mb-6">
-        <h2 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:1rem;">📊 ملخص النشاط حسب المستخدم واليوم</h2>
+        <h2 style="font-size:1.1rem; font-weight:700; color:#0a2540; margin-bottom:1rem;"><x-icon name="chart"/> ملخص النشاط حسب المستخدم واليوم</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-sm border-collapse">
                 <thead>
@@ -71,7 +71,7 @@
 
     {{-- Full Log --}}
     <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
-        <h2 style="font-size:1rem; font-weight:700; color:#0a2540; margin-bottom:1rem;">📄 السجل الكامل</h2>
+        <h2 style="font-size:1rem; font-weight:700; color:#0a2540; margin-bottom:1rem;"><x-icon name="file"/> السجل الكامل</h2>
         <table class="w-full text-start border-collapse">
             <thead>
                 <tr style="background:#f1f5f9; color:#475569; font-size:0.85rem;">
@@ -121,8 +121,8 @@
                         title="{{ $log->user_agent ?? '' }}">
                         @php
                             $ua = $log->user_agent ?? '';
-                            if (str_contains($ua, 'Mobile') || str_contains($ua, 'Android') || str_contains($ua, 'iPhone')) { echo '📱 '; }
-                            elseif ($ua) { echo '🖥️ '; }
+                            if (str_contains($ua, 'Mobile') || str_contains($ua, 'Android') || str_contains($ua, 'iPhone')) { echo 'هاتف · '; }
+                            elseif ($ua) { echo 'كمبيوتر · '; }
                             if (str_contains($ua, 'Chrome'))  { echo 'Chrome'; }
                             elseif (str_contains($ua, 'Firefox')) { echo 'Firefox'; }
                             elseif (str_contains($ua, 'Safari'))  { echo 'Safari'; }

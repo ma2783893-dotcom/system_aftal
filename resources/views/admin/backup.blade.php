@@ -4,7 +4,7 @@
 @section('content')
 <div class="max-w-3xl mx-auto px-4">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;">💾 النسخة الاحتياطية</h1>
+        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="save"/> النسخة الاحتياطية</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">← العودة للوحة التحكم</a>
     </div>
 
@@ -20,10 +20,10 @@
         <form method="POST" action="/admin/backup" style="display:flex; flex-direction:column; gap:10px;">
             @csrf
             <button name="files" value="0" style="background:#0f766e; color:#fff; border:none; padding:14px; border-radius:10px; font-weight:800; font-size:1rem; cursor:pointer; font-family:inherit;">
-                ⬇️ تحميل البيانات (سريع وصغير)
+                <x-icon name="download"/> تحميل البيانات (سريع وصغير)
             </button>
             <button name="files" value="1" style="background:#fff; color:#0f766e; border:2px solid #0f766e; padding:12px; border-radius:10px; font-weight:800; cursor:pointer; font-family:inherit;">
-                ⬇️ تحميل كامل مع السير الذاتية والصور (ملف كبير)
+                <x-icon name="download"/> تحميل كامل مع السير الذاتية والصور (ملف كبير)
             </button>
         </form>
         <p style="font-size:0.8rem; color:#94a3b8; margin:10px 0 0;">الملف بصيغة ‎.sql‎ — لا تفتحه ولا تعدّله، فقط احفظه. الاسترجاع يتم من قاعدة البيانات في Railway.</p>

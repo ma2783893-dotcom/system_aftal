@@ -6,7 +6,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-        <h1 style="font-size:1.6rem; font-weight:800; color:#0a2540; margin:0;">📊 تقرير الحضور</h1>
+        <h1 style="font-size:1.6rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="chart"/> تقرير الحضور</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">← العودة للوحة التحكم</a>
     </div>
 
@@ -32,9 +32,9 @@
             </div>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-            <button type="submit" style="background:#2563eb; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;">🔍 عرض التقرير</button>
-            <button type="submit" name="format" value="xlsx" style="background:#15803d; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;">📥 تصدير Excel</button>
-            <button type="submit" name="format" value="print" formtarget="_blank" style="background:#7c3aed; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;">🖨️ طباعة / PDF</button>
+            <button type="submit" style="background:#2563eb; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;"><x-icon name="search"/> عرض التقرير</button>
+            <button type="submit" name="format" value="xlsx" style="background:#15803d; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;"><x-icon name="download"/> تصدير Excel</button>
+            <button type="submit" name="format" value="print" formtarget="_blank" style="background:#7c3aed; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-weight:700; font-family:inherit; cursor:pointer;"><x-icon name="printer"/> طباعة / PDF</button>
             @php
                 $m0 = now()->startOfMonth(); $p0 = now()->subMonthNoOverflow()->startOfMonth();
                 $q  = fn($f, $t) => '/attendance/report?' . http_build_query(['employee_id' => optional($report->employee)->id, 'from' => $f->format('Y-m-d'), 'to' => $t->format('Y-m-d')]);
@@ -114,8 +114,8 @@
                         <td style="padding:7px 9px; color:{{ $r['out'] ? 'inherit' : '#b45309' }};">{{ $r['out'] ?? 'لم يسجّل' }}@if($r['auto']) <span style="font-size:0.75em; color:#7c3aed;">(تلقائي)</span>@endif</td>
                         <td style="padding:7px 9px; font-weight:700;">{{ R::hm($r['hours']) }}</td>
                         <td style="padding:7px 9px; font-size:0.8rem;">
-                            {{ $r['in_ok'] ? '✅' : '⚠️' }} حضور
-                            @if($r['out_ok'] !== null) · {{ $r['out_ok'] ? '✅' : '⚠️' }} انصراف @endif
+                            <x-icon name="{{ $r['in_ok'] ? 'check' : 'alert' }}"/> حضور
+                            @if($r['out_ok'] !== null) · <x-icon name="{{ $r['out_ok'] ? 'check' : 'alert' }}"/> انصراف @endif
                         </td>
                         @endif
                         <td style="padding:7px 9px; font-size:0.82rem; color:#334155;">{{ $r['note'] }}@if($r['manual']) <span style="color:#7c3aed; font-size:0.72rem;">(الإدارة)</span>@endif</td>

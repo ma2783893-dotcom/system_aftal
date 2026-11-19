@@ -4,7 +4,7 @@
 @section('content')
 <div class="max-w-md mx-auto px-4">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 style="font-size:1.3rem; font-weight:800; color:#0a2540; margin-bottom:6px;">🔑 تغيير كلمة المرور</h2>
+        <h2 style="font-size:1.3rem; font-weight:800; color:#0a2540; margin-bottom:6px;"><x-icon name="key"/> تغيير كلمة المرور</h2>
 
         @if(auth()->user()->must_change_password)
             <div style="background:#fff7ed; border:1px solid #fdba74; color:#9a3412; padding:10px 12px; border-radius:8px; font-size:0.875rem; margin-bottom:16px;">

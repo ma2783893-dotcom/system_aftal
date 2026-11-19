@@ -4,7 +4,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-4">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
-        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;">📝 ملاحظات واستثناءات الحضور</h1>
+        <h1 style="font-size:1.5rem; font-weight:800; color:#0a2540; margin:0;"><x-icon name="note"/> ملاحظات واستثناءات الحضور</h1>
         <a href="/" style="background:#0a2540; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.875rem;">← العودة للوحة التحكم</a>
     </div>
 
@@ -13,7 +13,7 @@
     @endif
     @if($errors->any())
         <div style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:10px 12px; border-radius:8px; margin-bottom:14px;">
-            @foreach($errors->all() as $e)<div>⚠️ {{ $e }}</div>@endforeach
+            @foreach($errors->all() as $e)<div><x-icon name="alert"/> {{ $e }}</div>@endforeach
         </div>
     @endif
 
@@ -42,21 +42,21 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">📅 التاريخ</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1"><x-icon name="calendar"/> التاريخ</label>
                 <input type="date" name="date" required value="{{ old('date', now()->toDateString()) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2">
             </div>
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">🟢 وقت الحضور (اختياري)</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1"><x-icon name="login"/> وقت الحضور (اختياري)</label>
                 <input type="time" name="check_in" value="{{ old('check_in') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2">
             </div>
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">🔴 وقت الخروج (اختياري)</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1"><x-icon name="logout"/> وقت الخروج (اختياري)</label>
                 <input type="time" name="check_out" value="{{ old('check_out') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2">
             </div>
         </div>
 
         <div class="mt-3">
-            <label class="block text-sm font-bold text-gray-700 mb-1">🗒️ الملاحظة (اختياري)</label>
+            <label class="block text-sm font-bold text-gray-700 mb-1"><x-icon name="note"/> الملاحظة (اختياري)</label>
             <input type="text" name="note" maxlength="500" value="{{ old('note') }}" list="noteIdeas"
                    placeholder="مثال: خروج بإذن، مهمة رسمية، إجازة مرضية..." class="w-full border border-gray-300 rounded-lg px-3 py-2">
             <datalist id="noteIdeas">
@@ -66,7 +66,7 @@
         </div>
 
         <button type="submit" style="width:100%; margin-top:16px; background:#2563eb; color:#fff; font-weight:800; padding:13px; border:none; border-radius:10px; cursor:pointer; font-family:inherit; font-size:1rem;">
-            💾 حفظ
+            حفظ
         </button>
     </form>
 
